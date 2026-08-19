@@ -1,0 +1,7 @@
+{
+  "name": "ZEEX Onchain",
+  "description": "Base-native tokenization, trading, and working-capital layer for the Zimbabwe Entrepreneurship Exchange (ZEEX), licensed by SECZim inside ZSE Holdings.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
