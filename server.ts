@@ -36,7 +36,7 @@ app.post("/api/ai-advisor", async (req, res) => {
     }
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.6-flash',
       contents: `You are the chief AI financial advisor for ZEEX Onchain, the SECZim-licensed digital SME exchange operating inside ZSE Holdings on Base. 
       Context of user portfolio: ${JSON.stringify(portfolioContext || {})}
       User query: ${prompt}
@@ -46,10 +46,8 @@ app.post("/api/ai-advisor", async (req, res) => {
 
     res.json({ reply: response.text });
   } catch (error: any) {
-    console.error("AI Advisor error (falling back):", error);
-    res.json({ 
-      reply: "ZEEX AI Advisor (Smart Fallback Mode): Based on current SECZim regulations and ZSE Debtbridge trust metrics, your portfolio exhibits robust USD-hedged cash flows with ~14.5% annualized dividend yields. Consider maintaining allocations in Econet Wireless (ECO.zx) and Takura Agro (TKRA.zx) for resilient quarterly distributions." 
-    });
+    console.error("AI Advisor error:", error);
+    res.status(500).json({ error: error.message || "Failed to generate AI advice" });
   }
 });
 
@@ -127,7 +125,7 @@ app.get("/api/market-news", async (req, res) => {
     }
 
     const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.6-flash',
       contents: 'Provide 3 recent financial news headlines and summaries regarding Zimbabwe Stock Exchange (ZSE), local business trends, and SME equities. Format strictly as a JSON array of objects with keys: id, title, source, snippet, time, url.',
       config: {
         tools: [{ googleSearch: {} }]

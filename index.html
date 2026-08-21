@@ -3,12 +3,19 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>My Google AI Studio App</title>
-    <meta name="description" content="An application built with Google AI Studio." />
-    <meta property="og:title" content="My Google AI Studio App" />
-    <meta property="og:description" content="An application built with Google AI Studio." />
+    <title>ZEEX Onchain - ZSE Digital Exchange</title>
+    <meta name="description" content="SECZim-licensed digital SME exchange operating inside ZSE Holdings on Base L2." />
+    <meta property="og:title" content="ZEEX Onchain" />
+    <meta property="og:description" content="SECZim-licensed digital SME exchange operating inside ZSE Holdings on Base L2." />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
+    <script>
+      window.addEventListener('unhandledrejection', function(event) {
+        if (event.reason && (event.reason.message || '').includes('WebSocket')) {
+          event.preventDefault();
+        }
+      });
+    </script>
   </head>
   <body>
     <div id="root"></div>

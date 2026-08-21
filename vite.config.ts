@@ -11,6 +11,11 @@ export default defineConfig(() => {
         '@': path.resolve(__dirname, '.'),
       },
     },
+    define: {
+      'process.env.CDP_PROJECT_ID': JSON.stringify(process.env.CDP_PROJECT_ID || process.env.VITE_CDP_PROJECT_ID || ''),
+      'process.env.BASE_PAYMASTER_MAINNET': JSON.stringify(process.env.BASE_PAYMASTER_MAINNET || ''),
+      'process.env.BASE_PAYMASTER_SEPOLIA': JSON.stringify(process.env.BASE_PAYMASTER_SEPOLIA || ''),
+    },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
       // Do not modifyâfile watching is disabled to prevent flickering during agent edits.

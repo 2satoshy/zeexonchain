@@ -11,6 +11,7 @@ import { ZigHubView } from './components/ZigHubView';
 import { WhatsAppWalletView } from './components/WhatsAppWalletView';
 import { AiAdvisorView } from './components/AiAdvisorView';
 import { SocialTimelineView } from './components/SocialTimelineView';
+import { ProfileView } from './components/ProfileView';
 import { FloatingMenu } from './components/FloatingMenu';
 import { BottomNav } from './components/BottomNav';
 
@@ -113,6 +114,21 @@ export default function App() {
     setTransactions(prev => [newTx, ...prev]);
   };
 
+  const handleAddMoney = (amountUSD: number, method: string) => {
+    setTotalBalanceUSD(prev => prev + amountUSD);
+    const newTx: Transaction = {
+      id: `tx-${Date.now()}`,
+      type: 'DEPOSIT',
+      title: `Added $${amountUSD.toFixed(2)} via ${method}`,
+      amountUSD: amountUSD,
+      amountZIG: amountUSD * 26,
+      timestamp: 'Just now',
+      status: 'Completed',
+      reference: `DEP-${Math.floor(100000 + Math.random() * 900000)}`
+    };
+    setTransactions(prev => [newTx, ...prev]);
+  };
+
   const handleQuickAction = (action: string) => {
     if (action === 'deposit') {
       const dep = 500;
@@ -128,10 +144,6 @@ export default function App() {
         reference: `BASE-DEP-${Math.floor(100000 + Math.random() * 900000)}`
       }, ...prev]);
     }
-  };
-
-  const handleAddTransactions = (newTxs: Transaction[]) => {
-    setTransactions(prev => [...newTxs, ...prev]);
   };
 
   return (
@@ -153,7 +165,6 @@ export default function App() {
             transactions={transactions} 
             setActiveTab={setActiveTab} 
             onQuickAction={handleQuickAction}
-            onAddTransactions={handleAddTransactions}
           />
         )}
         {activeTab === 'shares' && (
@@ -193,6 +204,14 @@ export default function App() {
             onCopyTrade={(ticker, amount) => {
               setActiveTab('shares');
             }}
+          />
+        )}
+        {activeTab === 'profile' && (
+          <ProfileView 
+            transactions={transactions}
+            totalBalanceUSD={totalBalanceUSD}
+            zigBalance={zigBalance}
+            onAddMoney={handleAddMoney}
           />
         )}
       </main>

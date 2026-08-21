@@ -1,22 +1,19 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { TrendingUp, ArrowUpRight, ArrowDownLeft, ShieldCheck, Smartphone, Sparkles, Plus, Send, RefreshCw, FileText, Landmark, Coins, ChevronRight } from 'lucide-react';
 import { SMEStock, Transaction, TabType } from '../types';
 import { PerformanceInsightsCard } from './PerformanceInsightsCard';
 import { MarketMarqueeTicker } from './MarketMarqueeTicker';
 import { DividendsSection } from './DividendsSection';
-import { AutoRebalanceModal } from './AutoRebalanceModal';
+import { SectorTreemap } from './SectorTreemap';
 
 interface DashboardViewProps {
   stocks: SMEStock[];
   transactions: Transaction[];
   setActiveTab: (tab: TabType) => void;
   onQuickAction: (action: string) => void;
-  onAddTransactions?: (txs: Transaction[]) => void;
 }
 
-export const DashboardView: React.FC<DashboardViewProps> = ({ stocks, transactions, setActiveTab, onQuickAction, onAddTransactions }) => {
-  const [isRebalanceOpen, setIsRebalanceOpen] = useState(false);
-
+export const DashboardView: React.FC<DashboardViewProps> = ({ stocks, transactions, setActiveTab, onQuickAction }) => {
   return (
     <div className="space-y-6">
       {/* Top Ticker Marquee */}
@@ -54,13 +51,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ stocks, transactio
               <span>Deposit Funds</span>
             </button>
             <button
-              onClick={() => setIsRebalanceOpen(true)}
-              className="flex-1 md:flex-none flex items-center justify-center space-x-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold px-5 py-3 rounded-2xl transition-all shadow-md text-sm"
-            >
-              <Sparkles className="w-4 h-4 text-blue-200" />
-              <span>AI Auto-Rebalance</span>
-            </button>
-            <button
               onClick={() => setActiveTab('shares')}
               className="flex-1 md:flex-none flex items-center justify-center space-x-2 bg-white/10 hover:bg-white/20 text-white font-semibold px-5 py-3 rounded-2xl backdrop-blur-md transition-all text-sm border border-white/10"
             >
@@ -69,20 +59,159 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ stocks, transactio
             </button>
           </div>
         </div>
+
+        {/* Mini Balance Breakdown Bar */}
+        <div className="mt-8 pt-6 border-t border-slate-700/60 grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div 
+            onClick={() => setActiveTab('zig')}
+            className="cursor-pointer bg-white/10 hover:bg-white/15 border border-white/15 p-4 rounded-2xl transition-all group flex flex-col justify-between shadow-sm"
+            title="Go to $ZIG Hub & USDC Onramp"
+          >
+            <div className="flex justify-between items-center text-xs text-slate-300 font-medium mb-1">
+              <span>USD / USDC</span>
+              <span className="text-emerald-400 group-hover:translate-x-0.5 transition-transform">↗</span>
+            </div>
+            <div className="text-lg font-bold text-white">$1,420.50</div>
+          </div>
+
+          <div 
+            onClick={() => setActiveTab('zig')}
+            className="cursor-pointer bg-white/10 hover:bg-white/15 border border-white/15 p-4 rounded-2xl transition-all group flex flex-col justify-between shadow-sm"
+            title="Go to $ZIG Gold Stablecoin Hub"
+          >
+            <div className="flex justify-between items-center text-xs text-slate-300 font-medium mb-1">
+              <span>$ZIG Stablecoin</span>
+              <span className="text-emerald-400 group-hover:translate-x-0.5 transition-transform">↗</span>
+            </div>
+            <div className="text-lg font-bold text-emerald-400">ZIG 36,933</div>
+          </div>
+
+          <div 
+            onClick={() => setActiveTab('shares')}
+            className="cursor-pointer bg-white/10 hover:bg-white/15 border border-white/15 p-4 rounded-2xl transition-all group flex flex-col justify-between shadow-sm"
+            title="Go to ZEEX Shares & Fractional Access"
+          >
+            <div className="flex justify-between items-center text-xs text-slate-300 font-medium mb-1">
+              <span>Token Equities</span>
+              <span className="text-blue-400 group-hover:translate-x-0.5 transition-transform">↗</span>
+            </div>
+            <div className="text-lg font-bold text-white">$2,840.00</div>
+          </div>
+
+          <div 
+            onClick={() => setActiveTab('invoiceX')}
+            className="cursor-pointer bg-white/10 hover:bg-white/15 border border-white/15 p-4 rounded-2xl transition-all group flex flex-col justify-between shadow-sm"
+            title="Go to InvoiceX Discounting"
+          >
+            <div className="flex justify-between items-center text-xs text-slate-300 font-medium mb-1">
+              <span>Invoice Yield</span>
+              <span className="text-purple-400 group-hover:translate-x-0.5 transition-transform">↗</span>
+            </div>
+            <div className="text-lg font-bold text-blue-400">14.2% APY</div>
+          </div>
+        </div>
       </div>
 
-      {/* Auto-Rebalance Modal */}
-      <AutoRebalanceModal 
-        isOpen={isRebalanceOpen}
-        onClose={() => setIsRebalanceOpen(false)}
-        stocks={stocks}
-        onExecuteRebalance={(txs) => {
-          if (onAddTransactions) onAddTransactions(txs);
-        }}
-      />
+      {/* 5 Interlocking Products Grid */}
+      <div>
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-lg font-bold text-slate-900 tracking-tight">ZEEX Onchain Product Suite</h2>
+          <span className="text-xs text-slate-500">Regulated Capital Market Rails</span>
+        </div>
 
-      {/* Performance Insights & Analytics */}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          <div 
+            onClick={() => setActiveTab('shares')}
+            className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+          >
+            <div>
+              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                <PieChartIcon className="w-5 h-5" />
+              </div>
+              <h3 className="font-bold text-slate-900 text-sm">ZEEX Shares</h3>
+              <p className="text-xs text-slate-500 mt-1">Tokenized SME equity rails backed 1:1 in trust.</p>
+            </div>
+            <div className="mt-4 flex items-center text-xs font-semibold text-blue-600">
+              <span>Explore Equities</span>
+              <ChevronRight className="w-3.5 h-3.5 ml-1 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+
+          <div 
+            onClick={() => setActiveTab('shares')}
+            className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+          >
+            <div>
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                <DollarSignIcon className="w-5 h-5" />
+              </div>
+              <h3 className="font-bold text-slate-900 text-sm">Fractional $1</h3>
+              <p className="text-xs text-slate-500 mt-1">Break shares into 1M units for wallet-native access.</p>
+            </div>
+            <div className="mt-4 flex items-center text-xs font-semibold text-emerald-600">
+              <span>Invest $1+</span>
+              <ChevronRight className="w-3.5 h-3.5 ml-1 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+
+          <div 
+            onClick={() => setActiveTab('invoiceX')}
+            className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+          >
+            <div>
+              <div className="w-10 h-10 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                <FileText className="w-5 h-5" />
+              </div>
+              <h3 className="font-bold text-slate-900 text-sm">InvoiceX Onchain</h3>
+              <p className="text-xs text-slate-500 mt-1">Turn SME unpaid invoices into high-yield instruments.</p>
+            </div>
+            <div className="mt-4 flex items-center text-xs font-semibold text-purple-600">
+              <span>View Invoices</span>
+              <ChevronRight className="w-3.5 h-3.5 ml-1 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+
+          <div 
+            onClick={() => setActiveTab('debtBridge')}
+            className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+          >
+            <div>
+              <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                <Landmark className="w-5 h-5" />
+              </div>
+              <h3 className="font-bold text-slate-900 text-sm">DebtBridge SBLOC</h3>
+              <p className="text-xs text-slate-500 mt-1">Securities-backed credit lines & smart escrow.</p>
+            </div>
+            <div className="mt-4 flex items-center text-xs font-semibold text-amber-600">
+              <span>Borrowing Portal</span>
+              <ChevronRight className="w-3.5 h-3.5 ml-1 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+
+          <div 
+            onClick={() => setActiveTab('zig')}
+            className="bg-white p-5 rounded-2xl border border-slate-200 shadow-xs hover:shadow-md transition-all cursor-pointer group flex flex-col justify-between"
+          >
+            <div>
+              <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center mb-3 group-hover:scale-110 transition-transform">
+                <Coins className="w-5 h-5" />
+              </div>
+              <h3 className="font-bold text-slate-900 text-sm">$ZIG Gold Stablecoin</h3>
+              <p className="text-xs text-slate-500 mt-1">Fully reserved ZiG/USDC FX corridor on Base L2.</p>
+            </div>
+            <div className="mt-4 flex items-center text-xs font-semibold text-emerald-700">
+              <span>Explore $ZIG</span>
+              <ChevronRight className="w-3.5 h-3.5 ml-1 group-hover:translate-x-1 transition-transform" />
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Performance Insights Card */}
       <PerformanceInsightsCard transactions={transactions} />
+
+      {/* D3 Treemap Sector Weight & Performance */}
+      <SectorTreemap stocks={stocks} />
 
       {/* Dividends & Passive Income Hub */}
       <DividendsSection transactions={transactions} stocks={stocks} />
@@ -135,34 +264,28 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ stocks, transactio
           </div>
         </div>
 
-        {/* Right Column: WhatsApp Integration & Recent Activity */}
+        {/* Recent Transactions & WhatsApp Banner */}
         <div className="space-y-6">
-          {/* Recent Activity Mini-Feed */}
           <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-xs">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-base font-bold text-slate-900">Recent Activity</h2>
-              <span className="text-xs text-slate-400">{transactions.length} Transactions</span>
-            </div>
-
+            <h2 className="text-lg font-bold text-slate-900 mb-4">Recent Activity</h2>
             <div className="space-y-3">
-              {transactions.slice(0, 3).map((tx) => (
-                <div key={tx.id} className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-100 text-xs">
-                  <div className="flex items-center space-x-2.5">
-                    <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-bold ${
-                      tx.type === 'BUY' ? 'bg-emerald-100 text-emerald-700' :
-                      tx.type === 'DIVIDEND' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'
+              {transactions.map((tx) => (
+                <div key={tx.id} className="flex items-center justify-between py-2 border-b border-slate-100 last:border-0">
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                      tx.type === 'BUY' ? 'bg-blue-50 text-blue-600' :
+                      tx.type === 'DIVIDEND' ? 'bg-emerald-50 text-emerald-600' : 'bg-purple-50 text-purple-600'
                     }`}>
-                      {tx.type === 'BUY' ? '📥' : tx.type === 'DIVIDEND' ? '💵' : '📤'}
+                      {tx.type === 'BUY' ? <ArrowDownLeft className="w-4 h-4" /> : <TrendingUp className="w-4 h-4" />}
                     </div>
                     <div>
-                      <div className="font-bold text-slate-900 truncate max-w-[140px]">{tx.title}</div>
+                      <div className="text-xs font-bold text-slate-800">{tx.title}</div>
                       <div className="text-[10px] text-slate-400">{tx.timestamp}</div>
                     </div>
                   </div>
-
                   <div className="text-right">
-                    <div className="font-bold text-slate-900">+${tx.amountUSD.toFixed(2)}</div>
-                    <div className="text-[10px] text-emerald-600 font-semibold">{tx.status}</div>
+                    <div className="text-xs font-bold text-slate-900">${tx.amountUSD.toFixed(2)}</div>
+                    <div className="text-[10px] text-slate-400">{tx.amountZIG ? `ZIG ${tx.amountZIG.toLocaleString()}` : ''}</div>
                   </div>
                 </div>
               ))}

@@ -1,4 +1,4 @@
-export type TabType = 'dashboard' | 'shares' | 'invoiceX' | 'debtBridge' | 'zig' | 'whatsapp' | 'aiAdvisor' | 'social';
+export type TabType = 'dashboard' | 'shares' | 'invoiceX' | 'debtBridge' | 'zig' | 'whatsapp' | 'aiAdvisor' | 'social' | 'profile';
 
 export interface SocialPost {
   id: string;

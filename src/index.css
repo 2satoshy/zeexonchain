@@ -14,3 +14,40 @@
 .animate-marquee:hover {
   animation-play-state: paused;
 }
+
+/* CDP Non-Custodial Embedded Wallet Button Refinements */
+[class*="SignInModal-module__trigger"],
+[class*="Button-module__btn"],
+[class*="Button-module__primary"],
+[class*="Button-module__secondary"],
+.cdp-auth-button button,
+.cdp-header-auth button {
+  white-space: nowrap !important;
+  word-break: keep-all !important;
+  min-height: auto !important;
+}
+
+/* Header-specific compact CDP Auth trigger */
+.cdp-header-auth {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.cdp-header-auth button,
+.cdp-header-auth [role="button"] {
+  height: 32px !important;
+  min-height: 32px !important;
+  max-height: 32px !important;
+  padding: 0 10px !important;
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  line-height: 1 !important;
+  border-radius: 10px !important;
+  white-space: nowrap !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-shadow: 0 1px 2px 0 rgb(0 0 0 / 0.05) !important;
+}
+
