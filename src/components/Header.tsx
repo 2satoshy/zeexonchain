@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShieldCheck, Smartphone, LogIn, LogOut } from 'lucide-react';
+import { ShieldCheck, Smartphone, Plus, Send, Building2, Terminal } from 'lucide-react';
 import { AuthButton, SignInModal, SignInModalTrigger, SignOutButton } from '@coinbase/cdp-react';
 import { useCurrentUser, useEvmAddress } from '@coinbase/cdp-hooks';
 
@@ -8,9 +8,22 @@ interface HeaderProps {
   zigBalance: number;
   activeTab: string;
   setActiveTab: (tab: any) => void;
+  onOpenDeposit?: () => void;
+  onOpenSend?: () => void;
+  onOpenTokenize?: () => void;
+  onOpenApiExplorer?: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ totalBalanceUSD, zigBalance, activeTab, setActiveTab }) => {
+export const Header: React.FC<HeaderProps> = ({ 
+  totalBalanceUSD, 
+  zigBalance, 
+  activeTab, 
+  setActiveTab,
+  onOpenDeposit,
+  onOpenSend,
+  onOpenTokenize,
+  onOpenApiExplorer
+}) => {
   const { currentUser } = useCurrentUser();
   const { evmAddress } = useEvmAddress();
 
@@ -29,10 +42,16 @@ export const Header: React.FC<HeaderProps> = ({ totalBalanceUSD, zigBalance, act
         <div className="flex justify-between h-14 items-center gap-2">
           {/* Logo & Brand */}
           <div className="flex items-center space-x-2 shrink-0">
-            <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0">
+            <div 
+              onClick={() => setActiveTab('dashboard')}
+              className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center text-white font-bold text-sm shadow-sm shrink-0 cursor-pointer"
+            >
               Z
             </div>
-            <div className="flex items-center space-x-1.5">
+            <div 
+              onClick={() => setActiveTab('dashboard')}
+              className="flex items-center space-x-1.5 cursor-pointer"
+            >
               <span className="font-bold text-slate-900 text-sm tracking-tight whitespace-nowrap">ZEEX Onchain</span>
               <span className="hidden sm:inline-flex items-center px-1.5 py-0.5 rounded text-[9px] font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 whitespace-nowrap">
                 SECZim Licensed
@@ -44,13 +63,54 @@ export const Header: React.FC<HeaderProps> = ({ totalBalanceUSD, zigBalance, act
           <div className="hidden lg:flex items-center space-x-3 bg-slate-50 px-3 py-1 rounded-full border border-slate-200 text-[11px]">
             <div className="flex items-center space-x-1 text-slate-600">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              <span className="font-medium">Base Mainnet</span>
+              <span className="font-medium">Base Sepolia L2</span>
             </div>
             <div className="h-2.5 w-[1px] bg-slate-300"></div>
             <div className="flex items-center space-x-1 text-slate-600">
               <ShieldCheck className="w-3 h-3 text-blue-600" />
-              <span>ZSE Custody</span>
+              <span>CDP Non-Custodial</span>
             </div>
+          </div>
+
+          {/* Quick Action Buttons (Deposit, Send, Tokenize, API) */}
+          <div className="hidden md:flex items-center space-x-2">
+            {onOpenDeposit && (
+              <button
+                onClick={onOpenDeposit}
+                className="h-8 px-3 text-xs font-bold rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center space-x-1 cursor-pointer transition-colors"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Deposit</span>
+              </button>
+            )}
+            {onOpenSend && (
+              <button
+                onClick={onOpenSend}
+                className="h-8 px-3 text-xs font-bold rounded-xl bg-blue-50 hover:bg-blue-100 text-blue-800 border border-blue-200 flex items-center space-x-1 cursor-pointer transition-colors"
+              >
+                <Send className="w-3.5 h-3.5" />
+                <span>Send</span>
+              </button>
+            )}
+            {onOpenTokenize && (
+              <button
+                onClick={onOpenTokenize}
+                className="h-8 px-3 text-xs font-bold rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-800 border border-indigo-200 flex items-center space-x-1 cursor-pointer transition-colors"
+              >
+                <Building2 className="w-3.5 h-3.5" />
+                <span>Tokenize</span>
+              </button>
+            )}
+            {onOpenApiExplorer && (
+              <button
+                onClick={onOpenApiExplorer}
+                className="h-8 px-2.5 text-xs font-semibold rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 flex items-center space-x-1 cursor-pointer transition-colors"
+                title="Open Live REST API Explorer & Endpoints Console"
+              >
+                <Terminal className="w-3.5 h-3.5 text-emerald-600" />
+                <span>API</span>
+              </button>
+            )}
           </div>
 
           {/* User Profile & Coinbase Auth */}
@@ -117,4 +177,5 @@ export const Header: React.FC<HeaderProps> = ({ totalBalanceUSD, zigBalance, act
     </header>
   );
 };
+
 

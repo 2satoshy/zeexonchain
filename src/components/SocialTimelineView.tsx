@@ -26,6 +26,18 @@ export const SocialTimelineView: React.FC<SocialTimelineViewProps> = ({ onCopyTr
   const [newsLoading, setNewsLoading] = useState(true);
   const [newsGrounded, setNewsGrounded] = useState(false);
 
+  const fetchPosts = async () => {
+    try {
+      const res = await fetch('/api/social/posts');
+      const data = await res.json();
+      if (data && data.data && Array.isArray(data.data)) {
+        setPosts(data.data);
+      }
+    } catch (e) {
+      console.warn("Could not fetch API social posts, using cache", e);
+    }
+  };
+
   const fetchMarketNews = async () => {
     setNewsLoading(true);
     try {
@@ -43,10 +55,11 @@ export const SocialTimelineView: React.FC<SocialTimelineViewProps> = ({ onCopyTr
   };
 
   useEffect(() => {
+    fetchPosts();
     fetchMarketNews();
   }, []);
 
-  const handleLike = (id: string) => {
+  const handleLike = async (id: string) => {
     setPosts(prev => prev.map(p => {
       if (p.id === id) {
         return {
@@ -57,29 +70,58 @@ export const SocialTimelineView: React.FC<SocialTimelineViewProps> = ({ onCopyTr
       }
       return p;
     }));
+
+    try {
+      await fetch(`/api/social/posts/${id}/like`, { method: 'POST' });
+    } catch (e) {
+      // Ignored
+    }
   };
 
-  const handlePostSubmit = (e: React.FormEvent) => {
+  const handlePostSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newContent.trim()) return;
 
-    const newPost: SocialPost = {
-      id: `post-${Date.now()}`,
-      authorName: 'Tendai Moyo',
-      authorHandle: '@tendai_moyo',
-      authorAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
-      badge: 'Pro Investor',
-      content: newContent,
-      timestamp: 'Just now',
-      likes: 1,
-      comments: 0,
-      isLiked: true
-    };
-
-    setPosts([newPost, ...posts]);
+    const contentText = newContent;
     setNewContent('');
-    setSuccessMsg('Trade signal posted successfully to ZEEX Social Timeline!');
-    setTimeout(() => setSuccessMsg(null), 4000);
+
+    try {
+      const res = await fetch('/api/social/posts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          authorName: 'Tendai Moyo',
+          authorHandle: '@tendai_moyo',
+          authorAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
+          badge: 'Pro Investor',
+          content: contentText,
+          mediaType: 'flex'
+        })
+      });
+      const data = await res.json();
+      if (data && data.data) {
+        setPosts(prev => [data.data, ...prev]);
+      } else {
+        const fallbackPost: SocialPost = {
+          id: `post-${Date.now()}`,
+          authorName: 'Tendai Moyo',
+          authorHandle: '@tendai_moyo',
+          authorAvatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&w=200&q=80',
+          badge: 'Pro Investor',
+          content: contentText,
+          timestamp: 'Just now',
+          likes: 1,
+          comments: 0,
+          isLiked: true
+        };
+        setPosts(prev => [fallbackPost, ...prev]);
+      }
+      setSuccessMsg('Trade signal posted successfully to ZEEX Social Timeline!');
+      setTimeout(() => setSuccessMsg(null), 4000);
+    } catch (e) {
+      setSuccessMsg('Trade signal recorded to timeline.');
+      setTimeout(() => setSuccessMsg(null), 4000);
+    }
   };
 
   return (

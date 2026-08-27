@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { InvoiceItem } from '../types';
 import { FileText, ShieldCheck, ArrowRight, CheckCircle2, TrendingUp, Calendar, Building, X } from 'lucide-react';
+import { PaginationBar } from './PaginationBar';
+import { SwipeableContainer } from './SwipeableContainer';
 
 interface InvoiceXViewProps {
   invoices: InvoiceItem[];
@@ -11,6 +13,20 @@ export const InvoiceXView: React.FC<InvoiceXViewProps> = ({ invoices, onFundInvo
   const [selectedInvoice, setSelectedInvoice] = useState<InvoiceItem | null>(null);
   const [fundAmount, setFundAmount] = useState<number>(500);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const itemsPerPage = 3;
+  const totalPages = Math.ceil(invoices.length / itemsPerPage) || 1;
+  const currentInvoices = invoices.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
+
+  const handleSwipeLeft = () => {
+    if (currentPage < totalPages) setCurrentPage(prev => prev + 1);
+  };
+
+  const handleSwipeRight = () => {
+    if (currentPage > 1) setCurrentPage(prev => prev - 1);
+  };
 
   const handleFundSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,74 +64,91 @@ export const InvoiceXView: React.FC<InvoiceXViewProps> = ({ invoices, onFundInvo
         </div>
       )}
 
-      {/* Invoices Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {invoices.map((inv) => (
-          <div key={inv.id} className="bg-white rounded-3xl border border-slate-200 shadow-xs p-6 flex flex-col justify-between hover:shadow-md transition-all">
-            <div>
-              <div className="flex justify-between items-start mb-3">
-                <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-800">
-                  {inv.invoiceNumber}
-                </span>
-                <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
-                  inv.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
-                }`}>
-                  {inv.status}
-                </span>
+      {/* Swipeable Invoices Grid */}
+      <SwipeableContainer
+        onSwipeLeft={handleSwipeLeft}
+        onSwipeRight={handleSwipeRight}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        showMobileSwipeIndicator={true}
+      >
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 animate-fade-in">
+          {currentInvoices.map((inv) => (
+            <div key={inv.id} className="bg-white rounded-3xl border border-slate-200 shadow-xs p-6 flex flex-col justify-between hover:shadow-md transition-all">
+              <div>
+                <div className="flex justify-between items-start mb-3">
+                  <span className="px-2.5 py-1 rounded-full text-xs font-bold bg-slate-100 text-slate-800">
+                    {inv.invoiceNumber}
+                  </span>
+                  <span className={`px-2.5 py-1 rounded-full text-xs font-bold ${
+                    inv.status === 'Active' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
+                  }`}>
+                    {inv.status}
+                  </span>
+                </div>
+
+                <div className="space-y-2 mt-4">
+                  <div className="flex items-center space-x-2 text-xs text-slate-500">
+                    <Building className="w-4 h-4 text-slate-400" />
+                    <span className="font-semibold text-slate-800">{inv.smeName}</span>
+                  </div>
+                  <div className="text-xs text-slate-500 pl-6">
+                    Buyer: <span className="font-medium text-slate-700">{inv.buyerName}</span>
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-slate-100 grid grid-cols-2 gap-4">
+                  <div>
+                    <div className="text-[11px] text-slate-400 font-medium">Invoice Amount</div>
+                    <div className="text-base font-bold text-slate-900">${inv.amountUSD.toLocaleString()}</div>
+                  </div>
+                  <div>
+                    <div className="text-[11px] text-slate-400 font-medium">Discount APY</div>
+                    <div className="text-base font-bold text-purple-600">{inv.discountRate}%</div>
+                  </div>
+                </div>
+
+                <div className="mt-4 space-y-2">
+                  <div className="flex justify-between text-xs text-slate-500">
+                    <span>Funding Progress ({inv.fundedPercentage}%)</span>
+                    <span>Due in {inv.tenorDays} days</span>
+                  </div>
+                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                    <div className="bg-purple-600 h-full rounded-full" style={{ width: `${inv.fundedPercentage}%` }}></div>
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-2 mt-4">
-                <div className="flex items-center space-x-2 text-xs text-slate-500">
-                  <Building className="w-4 h-4 text-slate-400" />
-                  <span className="font-semibold text-slate-800">{inv.smeName}</span>
-                </div>
-                <div className="text-xs text-slate-500 pl-6">
-                  Buyer: <span className="font-medium text-slate-700">{inv.buyerName}</span>
-                </div>
-              </div>
-
-              <div className="mt-6 pt-4 border-t border-slate-100 grid grid-cols-2 gap-4">
-                <div>
-                  <div className="text-[11px] text-slate-400 font-medium">Invoice Amount</div>
-                  <div className="text-base font-bold text-slate-900">${inv.amountUSD.toLocaleString()}</div>
-                </div>
-                <div>
-                  <div className="text-[11px] text-slate-400 font-medium">Discount APY</div>
-                  <div className="text-base font-bold text-purple-600">{inv.discountRate}%</div>
-                </div>
-              </div>
-
-              <div className="mt-4 space-y-2">
-                <div className="flex justify-between text-xs text-slate-500">
-                  <span>Funding Progress ({inv.fundedPercentage}%)</span>
-                  <span>Due in {inv.tenorDays} days</span>
-                </div>
-                <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                  <div className="bg-purple-600 h-full rounded-full" style={{ width: `${inv.fundedPercentage}%` }}></div>
-                </div>
+              <div className="mt-6 pt-4 border-t border-slate-100">
+                <button
+                  onClick={() => {
+                    setSelectedInvoice(inv);
+                    setFundAmount(100);
+                  }}
+                  disabled={inv.status === 'Active'}
+                  className={`w-full py-3 rounded-2xl text-sm font-bold flex items-center justify-center space-x-2 transition-all ${
+                    inv.status === 'Active' 
+                      ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
+                      : 'bg-purple-600 hover:bg-purple-700 text-white shadow-sm'
+                  }`}
+                >
+                  <span>{inv.status === 'Active' ? 'Fully Funded' : 'Fund Invoice (USDC/$ZIG)'}</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
               </div>
             </div>
+          ))}
+        </div>
+      </SwipeableContainer>
 
-            <div className="mt-6 pt-4 border-t border-slate-100">
-              <button
-                onClick={() => {
-                  setSelectedInvoice(inv);
-                  setFundAmount(100);
-                }}
-                disabled={inv.status === 'Active'}
-                className={`w-full py-3 rounded-2xl text-sm font-bold flex items-center justify-center space-x-2 transition-all ${
-                  inv.status === 'Active' 
-                    ? 'bg-slate-100 text-slate-400 cursor-not-allowed' 
-                    : 'bg-purple-600 hover:bg-purple-700 text-white shadow-sm'
-                }`}
-              >
-                <span>{inv.status === 'Active' ? 'Fully Funded' : 'Fund Invoice (USDC/$ZIG)'}</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
+      {/* Bottom Pagination Bar */}
+      <PaginationBar
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        itemName="invoices"
+      />
 
       {/* Fund Modal */}
       {selectedInvoice && (
@@ -173,3 +206,4 @@ export const InvoiceXView: React.FC<InvoiceXViewProps> = ({ invoices, onFundInvo
     </div>
   );
 };
+

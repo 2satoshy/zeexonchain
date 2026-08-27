@@ -1,17 +1,55 @@
 import React, { useState } from 'react';
-import { User, ShieldCheck, FileText, Download, CreditCard, Landmark, Clock, Activity, CheckCircle2, Upload, Plus, Lock, ChevronRight, Menu, Wallet } from 'lucide-react';
-import { Transaction } from '../types';
+import { User, ShieldCheck, FileText, Download, CreditCard, Landmark, Clock, Activity, CheckCircle2, Upload, Plus, Lock, ChevronRight, Menu, Wallet, Building2, Coins, Sparkles, ArrowRight, Layers } from 'lucide-react';
+import { Transaction, TokenAsset } from '../types';
 import { CoinbaseWalletSection } from './CoinbaseWalletSection';
+import { PaginationBar } from './PaginationBar';
+import { SwipeableContainer } from './SwipeableContainer';
+import { BlockchainIndexerHistory } from './BlockchainIndexerHistory';
 
 interface ProfileViewProps {
   transactions: Transaction[];
   totalBalanceUSD: number;
   zigBalance: number;
+  tokens?: TokenAsset[];
   onAddMoney: (amountUSD: number, method: string) => void;
+  onNavigateToStartupListing?: () => void;
+  onOpenDeposit?: () => void;
+  onOpenSend?: () => void;
+  onOpenSwap?: () => void;
+  onOpenTokenize?: () => void;
 }
 
-export const ProfileView: React.FC<ProfileViewProps> = ({ transactions, totalBalanceUSD, zigBalance, onAddMoney }) => {
-  const [activeSubTab, setActiveSubTab] = useState<'all' | 'cdpWallet' | 'personal' | 'kyc' | 'banking' | 'deposit' | 'documents' | 'history'>('all');
+export const ProfileView: React.FC<ProfileViewProps> = ({ 
+  transactions, 
+  totalBalanceUSD, 
+  zigBalance, 
+  tokens = [],
+  onAddMoney, 
+  onNavigateToStartupListing,
+  onOpenDeposit,
+  onOpenSend,
+  onOpenSwap,
+  onOpenTokenize
+}) => {
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const totalPages = 5;
+
+  const profilePages = [
+    { id: 1, title: '1. Wallets & Startups', shortTitle: 'Wallets & RWA' },
+    { id: 2, title: '2. Personal & KYC', shortTitle: 'Personal & KYC' },
+    { id: 3, title: '3. Banking & Add Funds', shortTitle: 'Banking' },
+    { id: 4, title: '4. Tax & Statements', shortTitle: 'Tax & Docs' },
+    { id: 5, title: '5. Blockchain Indexer & History', shortTitle: 'Onchain Indexer' },
+  ];
+
+  const handleSwipeLeft = () => {
+    if (currentPage < totalPages) setCurrentPage(prev => prev + 1);
+  };
+
+  const handleSwipeRight = () => {
+    if (currentPage > 1) setCurrentPage(prev => prev - 1);
+  };
+
 
   const [name, setName] = useState('Tendai Moyo');
   const [email, setEmail] = useState('tendai.moyo@zeex.co.zw');
@@ -111,57 +149,21 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ transactions, totalBal
       {/* Mobile Quick Navigation Jump Bar */}
       <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-xs flex items-center space-x-1.5 overflow-x-auto no-scrollbar">
         <div className="flex items-center space-x-1 pl-2 pr-1 text-slate-400 shrink-0 text-xs font-bold">
-          <Menu className="w-3.5 h-3.5 mr-1" /> Jump:
+          <Menu className="w-3.5 h-3.5 mr-1" /> Page:
         </div>
-        <button
-          onClick={() => setActiveSubTab('all')}
-          className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-colors ${activeSubTab === 'all' ? 'bg-slate-900 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
-        >
-          All Sections
-        </button>
-        <button
-          onClick={() => setActiveSubTab('cdpWallet')}
-          className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-colors flex items-center space-x-1 ${activeSubTab === 'cdpWallet' ? 'bg-blue-600 text-white' : 'bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200'}`}
-        >
-          <Wallet className="w-3.5 h-3.5" />
-          <span>Coinbase Wallet</span>
-        </button>
-        <button
-          onClick={() => setActiveSubTab('personal')}
-          className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-colors ${activeSubTab === 'personal' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
-        >
-          Personal & Bio
-        </button>
-        <button
-          onClick={() => setActiveSubTab('kyc')}
-          className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-colors ${activeSubTab === 'kyc' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
-        >
-          KYC Verify
-        </button>
-        <button
-          onClick={() => setActiveSubTab('banking')}
-          className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-colors ${activeSubTab === 'banking' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
-        >
-          Bank Rails
-        </button>
-        <button
-          onClick={() => setActiveSubTab('deposit')}
-          className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-colors ${activeSubTab === 'deposit' ? 'bg-emerald-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
-        >
-          Add Funds
-        </button>
-        <button
-          onClick={() => setActiveSubTab('documents')}
-          className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-colors ${activeSubTab === 'documents' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
-        >
-          Tax & Statements
-        </button>
-        <button
-          onClick={() => setActiveSubTab('history')}
-          className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-colors ${activeSubTab === 'history' ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}
-        >
-          Activity & History
-        </button>
+        {profilePages.map((page) => (
+          <button
+            key={page.id}
+            onClick={() => setCurrentPage(page.id)}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold shrink-0 transition-colors ${
+              currentPage === page.id
+                ? 'bg-slate-900 text-white shadow-sm'
+                : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+            }`}
+          >
+            {page.title}
+          </button>
+        ))}
       </div>
 
       {savedMsg && (
@@ -171,20 +173,81 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ transactions, totalBal
         </div>
       )}
 
-      {/* Coinbase Non-Custodial Wallet Section */}
-      {(activeSubTab === 'all' || activeSubTab === 'cdpWallet') && (
-        <div className="animate-fade-in">
-          <CoinbaseWalletSection zigBalance={zigBalance} totalBalanceUSD={totalBalanceUSD} />
-        </div>
-      )}
+      <SwipeableContainer
+        onSwipeLeft={handleSwipeLeft}
+        onSwipeRight={handleSwipeRight}
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        showMobileSwipeIndicator={true}
+      >
+        {/* Page 1: Coinbase Smart Wallet & Startup RWA Hub */}
+        {currentPage === 1 && (
+          <div className="space-y-6 animate-fade-in">
+            <CoinbaseWalletSection 
+              zigBalance={zigBalance} 
+              totalBalanceUSD={totalBalanceUSD} 
+              tokens={tokens}
+              onOpenDeposit={onOpenDeposit}
+              onOpenSend={onOpenSend}
+              onOpenSwap={onOpenSwap}
+              onOpenTokenize={onOpenTokenize}
+            />
 
-      {/* Grid: Personal Info & Personalization */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-        {/* Left 2 Cols: Profile Form & KYC & Banking */}
-        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
-          {/* Personalization & Info Form */}
-          {(activeSubTab === 'all' || activeSubTab === 'personal') && (
-            <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4 animate-fade-in">
+            <div className="bg-gradient-to-br from-slate-900 via-slate-850 to-indigo-950 rounded-2xl sm:rounded-3xl p-5 sm:p-7 text-white border border-indigo-900/50 shadow-md space-y-5">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-700/80 pb-4">
+                <div className="space-y-1">
+                  <div className="flex items-center space-x-2">
+                    <span className="p-2 rounded-xl bg-indigo-600/30 text-indigo-400 border border-indigo-500/30">
+                      <Building2 className="w-4 h-4" />
+                    </span>
+                    <h2 className="text-base sm:text-lg font-bold text-white">Startup & SME Tokenization Portal</h2>
+                  </div>
+                  <p className="text-xs text-slate-300">
+                    Apply for SECZim onchain listing, upload your dataroom, and tokenize equity into ERC-3643 securities.
+                  </p>
+                </div>
+
+                {onNavigateToStartupListing && (
+                  <button
+                    onClick={onNavigateToStartupListing}
+                    className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-xs transition-colors shadow-sm flex items-center space-x-1.5 shrink-0 cursor-pointer"
+                  >
+                    <span>Launch Tokenization Hub</span>
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                )}
+              </div>
+
+              {/* Quick Metrics & Features */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                <div className="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/60 space-y-1">
+                  <div className="text-[10px] text-slate-400 font-medium">Virtual Dataroom</div>
+                  <div className="text-sm font-bold text-white">Cryptographic Stamped</div>
+                  <div className="text-[10px] text-emerald-400">SHA-256 Verified Storage</div>
+                </div>
+
+                <div className="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/60 space-y-1">
+                  <div className="text-[10px] text-slate-400 font-medium">Token Pricing Engine</div>
+                  <div className="text-sm font-bold text-white">Dynamic Peg & Algorithmic</div>
+                  <div className="text-[10px] text-blue-300">Base L2 & SECZim Rails</div>
+                </div>
+
+                <div className="bg-slate-800/80 p-3.5 rounded-2xl border border-slate-700/60 space-y-1">
+                  <div className="text-[10px] text-slate-400 font-medium">Investor Matching</div>
+                  <div className="text-sm font-bold text-white">ZeexMatch LPs</div>
+                  <div className="text-[10px] text-purple-300">142 Institutional Syndicates</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Page 2: Personal Information & KYC Verification */}
+        {currentPage === 2 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 animate-fade-in">
+            {/* Personalization & Info Form */}
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4">
               <div className="flex items-center space-x-2">
                 <User className="w-4 h-4 text-blue-600" />
                 <h2 className="text-sm sm:text-base font-bold text-slate-900">Personal Information & Personalization</h2>
@@ -253,11 +316,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ transactions, totalBal
                 </div>
               </form>
             </div>
-          )}
 
-          {/* KYC Uploads Section */}
-          {(activeSubTab === 'all' || activeSubTab === 'kyc') && (
-            <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-3 sm:space-y-4 animate-fade-in">
+            {/* KYC Uploads Section */}
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-3 sm:space-y-4">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
                 <div className="flex items-center space-x-2">
                   <ShieldCheck className="w-4 h-4 text-emerald-600" />
@@ -285,11 +346,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ transactions, totalBal
                 </div>
               )}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Linked Bank Accounts & Add Money / Payout Rails */}
-          {(activeSubTab === 'all' || activeSubTab === 'banking') && (
-            <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-3 sm:space-y-4 animate-fade-in">
+        {/* Page 3: Linked Bank Accounts & Payout Rails + Add Funds */}
+        {currentPage === 3 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 animate-fade-in">
+            {/* Linked Bank Accounts */}
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-3 sm:space-y-4">
               <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
                 <div className="flex items-center space-x-2">
                   <Landmark className="w-4 h-4 text-blue-600" />
@@ -365,14 +429,9 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ transactions, totalBal
                 </form>
               )}
             </div>
-          )}
-        </div>
 
-        {/* Right Col: Add Money via Cards, Tax Forms, Statements & Legal Links */}
-        <div className="space-y-4 sm:space-y-6">
-          {/* Add Money via Card Widget */}
-          {(activeSubTab === 'all' || activeSubTab === 'deposit') && (
-            <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl sm:rounded-3xl p-5 sm:p-6 text-white shadow-md space-y-4 animate-fade-in">
+            {/* Add Money via Card Widget */}
+            <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-2xl sm:rounded-3xl p-5 sm:p-6 text-white shadow-md space-y-4">
               <div className="flex items-center space-x-2">
                 <CreditCard className="w-5 h-5 text-emerald-400" />
                 <h2 className="text-sm sm:text-base font-bold text-white">Add Funds with Card</h2>
@@ -426,11 +485,14 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ transactions, totalBal
                 </button>
               </form>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* Tax Forms & Statements Download */}
-          {(activeSubTab === 'all' || activeSubTab === 'documents') && (
-            <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4 animate-fade-in">
+        {/* Page 4: Tax Forms & Statements + Legal Compliance */}
+        {currentPage === 4 && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 animate-fade-in">
+            {/* Tax Forms & Statements Download */}
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4">
               <div className="flex items-center space-x-2">
                 <FileText className="w-4 h-4 text-blue-600" />
                 <h2 className="text-sm sm:text-base font-bold text-slate-900">Tax Forms & Statements</h2>
@@ -461,113 +523,98 @@ export const ProfileView: React.FC<ProfileViewProps> = ({ transactions, totalBal
                 </button>
               </div>
             </div>
-          )}
 
-          {/* Legal & Terms / Privacy Links */}
-          <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-3">
-            <div className="flex items-center space-x-2">
-              <Lock className="w-4 h-4 text-slate-700" />
-              <h2 className="text-sm sm:text-base font-bold text-slate-900">Legal & Compliance</h2>
-            </div>
-            <div className="space-y-1.5 pt-1 text-xs">
-              <button
-                onClick={() => setLegalModal('terms')}
-                className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 text-slate-700 font-medium transition-colors"
-              >
-                <span>Terms & Conditions</span>
-                <ChevronRight className="w-4 h-4 text-slate-400" />
-              </button>
-              <button
-                onClick={() => setLegalModal('privacy')}
-                className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 text-slate-700 font-medium transition-colors"
-              >
-                <span>Privacy Policy & Data Security</span>
-                <ChevronRight className="w-4 h-4 text-slate-400" />
-              </button>
+            {/* Legal & Terms / Privacy Links */}
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-3">
+              <div className="flex items-center space-x-2">
+                <Lock className="w-4 h-4 text-slate-700" />
+                <h2 className="text-sm sm:text-base font-bold text-slate-900">Legal & Compliance</h2>
+              </div>
+              <div className="space-y-1.5 pt-1 text-xs">
+                <button
+                  onClick={() => setLegalModal('terms')}
+                  className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 text-slate-700 font-medium transition-colors"
+                >
+                  <span>Terms & Conditions</span>
+                  <ChevronRight className="w-4 h-4 text-slate-400" />
+                </button>
+                <button
+                  onClick={() => setLegalModal('privacy')}
+                  className="w-full flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 text-slate-700 font-medium transition-colors"
+                >
+                  <span>Privacy Policy & Data Security</span>
+                  <ChevronRight className="w-4 h-4 text-slate-400" />
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      </div>
+        )}
 
-      {/* Transaction History & User Activities */}
-      {(activeSubTab === 'all' || activeSubTab === 'history') && (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 animate-fade-in">
-          {/* Transaction History */}
-          <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Clock className="w-4 h-4 text-blue-600" />
-                <h2 className="text-sm sm:text-base font-bold text-slate-900">Transaction History</h2>
+        {/* Page 5: Blockchain Indexer & History */}
+        {currentPage === 5 && (
+          <div className="space-y-6 animate-fade-in">
+            {/* Blockchain Indexer History with Confirmations for Swaps & Tokenizations */}
+            <BlockchainIndexerHistory
+              onOpenSwap={onOpenSwap}
+              onOpenTokenize={onOpenTokenize}
+            />
+
+            {/* User Security & Audit Activities Log */}
+            <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <Activity className="w-4 h-4 text-purple-600" />
+                  <h2 className="text-sm sm:text-base font-bold text-slate-900">Security & Session Audit Trail</h2>
+                </div>
+                <span className="text-xs text-slate-500">SECZim Regulated Custody</span>
               </div>
-              <span className="text-xs text-slate-500">{transactions.length} Total</span>
-            </div>
 
-            <div className="space-y-2.5 max-h-72 sm:max-h-80 overflow-y-auto pr-1">
-              {transactions.slice(0, 8).map((tx) => (
-                <div key={tx.id} className="p-3.5 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    <div className="font-bold text-slate-900 text-xs truncate">{tx.title}</div>
-                    <div className="text-[10px] text-slate-400 mt-0.5 truncate">{tx.timestamp} • {tx.reference}</div>
-                  </div>
-                  <div className="text-right shrink-0">
-                    <div className={`text-xs font-bold ${tx.type === 'DEPOSIT' || tx.type === 'DIVIDEND' ? 'text-emerald-600' : 'text-slate-900'}`}>
-                      {tx.type === 'DEPOSIT' || tx.type === 'DIVIDEND' ? '+' : '-'}${tx.amountUSD.toFixed(2)}
-                    </div>
-                    <span className="text-[9px] font-medium text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded">
-                      {tx.status}
-                    </span>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-start space-x-3">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 shrink-0"></div>
+                  <div className="text-xs min-w-0 flex-1">
+                    <div className="font-bold text-slate-900">Profile information updated</div>
+                    <div className="text-[10px] text-slate-500 mt-0.5">Today • IP: 196.22.x.x (Harare)</div>
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
 
-          {/* User Activities Log */}
-          <div className="bg-white rounded-2xl sm:rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Activity className="w-4 h-4 text-purple-600" />
-                <h2 className="text-sm sm:text-base font-bold text-slate-900">User Activities Log</h2>
-              </div>
-              <span className="text-xs text-slate-500">Audit Trail</span>
-            </div>
-
-            <div className="space-y-3 max-h-72 sm:max-h-80 overflow-y-auto pr-1">
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-start space-x-3">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 shrink-0"></div>
-                <div className="text-xs min-w-0 flex-1">
-                  <div className="font-bold text-slate-900">Profile information updated</div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">Today • IP: 196.22.x.x (Harare)</div>
+                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-start space-x-3">
+                  <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 shrink-0"></div>
+                  <div className="text-xs min-w-0 flex-1">
+                    <div className="font-bold text-slate-900">Linked bank (Stanbic Bank)</div>
+                    <div className="text-[10px] text-slate-500 mt-0.5">Yesterday • Base L2 Relay</div>
+                  </div>
                 </div>
-              </div>
 
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-start space-x-3">
-                <div className="w-2 h-2 rounded-full bg-blue-500 mt-1.5 shrink-0"></div>
-                <div className="text-xs min-w-0 flex-1">
-                  <div className="font-bold text-slate-900">Linked new bank account (Stanbic Bank)</div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">Yesterday • Base L2 Relay</div>
+                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-start space-x-3">
+                  <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 shrink-0"></div>
+                  <div className="text-xs min-w-0 flex-1">
+                    <div className="font-bold text-slate-900">KYC Tier 2 Verification Approved</div>
+                    <div className="text-[10px] text-slate-500 mt-0.5">Aug 15, 2026 • SECZim Compliance</div>
+                  </div>
                 </div>
-              </div>
 
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-start space-x-3">
-                <div className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 shrink-0"></div>
-                <div className="text-xs min-w-0 flex-1">
-                  <div className="font-bold text-slate-900">KYC Tier 2 Verification Approved</div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">Aug 15, 2026 • SECZim Compliance</div>
-                </div>
-              </div>
-
-              <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-start space-x-3">
-                <div className="w-2 h-2 rounded-full bg-amber-500 mt-1.5 shrink-0"></div>
-                <div className="text-xs min-w-0 flex-1">
-                  <div className="font-bold text-slate-900">WhatsApp Wallet Session Authenticated</div>
-                  <div className="text-[10px] text-slate-500 mt-0.5">Aug 10, 2026 • Phone +263 77...491</div>
+                <div className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-start space-x-3">
+                  <div className="w-2 h-2 rounded-full bg-amber-500 mt-1.5 shrink-0"></div>
+                  <div className="text-xs min-w-0 flex-1">
+                    <div className="font-bold text-slate-900">WhatsApp Wallet Session</div>
+                    <div className="text-[10px] text-slate-500 mt-0.5">Aug 10, 2026 • Phone +263 77...491</div>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </SwipeableContainer>
+
+      {/* Bottom Pagination Bar */}
+      <PaginationBar
+        currentPage={currentPage}
+        totalPages={totalPages}
+        onPageChange={setCurrentPage}
+        itemName="profile sections"
+      />
+
 
       {/* Legal Modal Popup */}
       {legalModal && (

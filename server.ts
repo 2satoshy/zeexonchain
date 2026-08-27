@@ -3,6 +3,14 @@ import path from "path";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 
+import stocksRouter from "./server/routes/stocks";
+import dexRouter from "./server/routes/dex";
+import invoicesRouter from "./server/routes/invoices";
+import loansRouter from "./server/routes/loans";
+import walletRouter from "./server/routes/wallet";
+import socialRouter from "./server/routes/social";
+import systemRouter from "./server/routes/system";
+
 const app = express();
 const PORT = 3000;
 
@@ -17,10 +25,42 @@ function getGeminiClient() {
   return aiClient;
 }
 
-// API Health check
+// API Health check & Documentation Index
 app.get("/api/health", (req, res) => {
-  res.json({ status: "ok", timestamp: new Date().toISOString() });
+  res.json({
+    status: "ok",
+    version: "2.0.0",
+    name: "ZEEX Onchain Securities API",
+    network: "Base Sepolia (L2)",
+    standard: "ERC-3643 Permissioned",
+    timestamp: new Date().toISOString(),
+    endpoints: {
+      stocks: ["GET /api/stocks", "GET /api/stocks/:id", "POST /api/stocks/buy", "POST /api/stocks/tokenize", "POST /api/stocks/burn"],
+      dex: ["GET /api/dex/tokens", "POST /api/dex/quote", "POST /api/dex/swap", "GET /api/dex/orders", "POST /api/dex/orders", "DELETE /api/dex/orders/:id"],
+      invoices: ["GET /api/invoices", "GET /api/invoices/:id", "POST /api/invoices", "POST /api/invoices/fund"],
+      loans: ["GET /api/loans", "POST /api/loans/borrow"],
+      wallet: ["GET /api/portfolio", "GET /api/transactions", "POST /api/wallet/deposit", "POST /api/wallet/send", "POST /api/wallet/faucet", "POST /api/wallet/dividends"],
+      social: ["GET /api/social/posts", "POST /api/social/posts", "POST /api/social/posts/:id/like"],
+      system: ["GET /api/oracles/rates", "GET /api/seczim/status", "GET /api/zig/reserves", "GET /api/indexer/stats"],
+      ai: ["POST /api/ai-advisor", "POST /api/whatsapp/simulate", "GET /api/market-news"]
+    }
+  });
 });
+
+// Mount modular sub-routers
+app.use("/api/stocks", stocksRouter);
+app.use("/api/dex", dexRouter);
+app.use("/api/invoices", invoicesRouter);
+app.use("/api/loans", loansRouter);
+app.use("/api/wallet", walletRouter);
+app.use("/api/portfolio", (req, res) => {
+  res.redirect(307, "/api/wallet/portfolio");
+});
+app.use("/api/transactions", (req, res) => {
+  res.redirect(307, "/api/wallet/transactions");
+});
+app.use("/api/social", socialRouter);
+app.use("/api", systemRouter);
 
 // AI Advisor endpoint for ZEEX Onchain insights
 app.post("/api/ai-advisor", async (req, res) => {
@@ -61,7 +101,7 @@ app.post("/api/whatsapp/simulate", async (req, res) => {
     let actionCard = undefined;
 
     if (cleanMsg.includes("balance") || cleanMsg.includes("wallet")) {
-      replyText = `📊 *ZEEX WhatsApp Wallet (${phoneNumber})*\n\n• USD Balance: $1,420.50\n• $ZIG Balance: ZIG 36,933.00\n• Tokenized Equity: $2,840.00\n• Total Net Worth: $4,260.50\n\n_Secured by Base & ZSE Debtbridge Trust._`;
+      replyText = `📊 *ZEEX WhatsApp Wallet (${phoneNumber || '+263 77 123 4567'})*\n\n• USD Balance: $1,420.50\n• $ZIG Balance: ZIG 36,933.00\n• Tokenized Equity: $2,840.00\n• Total Net Worth: $4,260.50\n\n_Secured by Base & ZSE Debtbridge Trust._`;
     } else if (cleanMsg.includes("buy") || cleanMsg.includes("invest")) {
       replyText = `✅ *Order Executed Successfully!*\n\nYou purchased fractional shares via WhatsApp Pay:\n• Asset: Nyanga Solar (NYNG.zx)\n• Amount: $50.00 (58.8 Units)\n• Settlement: Base L2 Instant Settlement\n• Custody: ZSE Debtbridge Trust #411`;
       actionCard = {

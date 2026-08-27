@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, PieChart, FileText, Landmark, TrendingUp } from 'lucide-react';
+import { LayoutDashboard, PieChart, ArrowRightLeft, FileText, User } from 'lucide-react';
 import { TabType } from '../types';
 
 interface BottomNavProps {
@@ -10,10 +10,10 @@ interface BottomNavProps {
 export const BottomNav: React.FC<BottomNavProps> = ({ activeTab, setActiveTab }) => {
   const navItems = [
     { id: 'dashboard', label: 'Home', icon: LayoutDashboard },
-    { id: 'shares', label: 'Shares', icon: PieChart },
+    { id: 'shares', label: 'Stocks', icon: PieChart },
+    { id: 'trading', label: 'Trade/DEX', icon: ArrowRightLeft },
     { id: 'invoiceX', label: 'InvoiceX', icon: FileText },
-    { id: 'debtBridge', label: 'DebtBridge', icon: Landmark },
-    { id: 'social', label: 'Social', icon: TrendingUp },
+    { id: 'profile', label: 'Wallet/KYC', icon: User },
   ];
 
   return (

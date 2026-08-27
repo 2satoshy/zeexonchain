@@ -73,6 +73,28 @@ export const INITIAL_SOCIAL_POSTS: SocialPost[] = [
   }
 ];
 
+export const generateStockPriceHistory = (basePriceUSD: number, trendMultiplier = 1) => {
+  const points = [
+    { offsetDays: 6, label: '6d ago', factor: 0.92 * trendMultiplier },
+    { offsetDays: 5, label: '5d ago', factor: 0.95 * trendMultiplier },
+    { offsetDays: 4, label: '4d ago', factor: 0.93 * trendMultiplier },
+    { offsetDays: 3, label: '3d ago', factor: 0.97 * trendMultiplier },
+    { offsetDays: 2, label: '2d ago', factor: 0.96 * trendMultiplier },
+    { offsetDays: 1, label: 'Yesterday', factor: 0.99 * trendMultiplier },
+    { offsetDays: 0, label: 'Today', factor: 1.0 },
+  ];
+
+  return points.map(p => {
+    const price = Math.max(0.01, Math.round(basePriceUSD * p.factor * 100) / 100);
+    return {
+      date: p.label,
+      priceUSD: price,
+      priceZIG: Math.round(price * 26 * 100) / 100,
+      volume: Math.floor(12000 + Math.random() * 45000)
+    };
+  });
+};
+
 export const INITIAL_STOCKS: SMEStock[] = [
   {
     id: 'sme-1',
@@ -81,14 +103,28 @@ export const INITIAL_STOCKS: SMEStock[] = [
     sector: 'Agribusiness & Export',
     priceUSD: 1.25,
     priceZIG: 32.50,
+    change1h: 0.12,
     change24h: 4.2,
-    marketCap: '$4.2M',
+    marketCap: '$4.20M',
+    volume24h: '$184.50K',
+    txns24h: 1420,
+    tradersCount: 842,
+    age: '4mo',
     dividendYield: 9.8,
     fractionalUnitsAvailable: 850000,
     backingTrust: 'ZSE Debtbridge Trust #402',
     description: 'Leading macadamia and tobacco processing exporter in Manicaland supplying EU markets. Fully tokenized with 1:1 SECZim custody.',
     riskRating: 'Growth',
-    image: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=600&q=80'
+    image: 'https://images.unsplash.com/photo-1500937386664-56d1dfef3854?auto=format&fit=crop&w=600&q=80',
+    priceHistory: [
+      { date: 'Mon', priceUSD: 1.15, priceZIG: 29.90, volume: 24500 },
+      { date: 'Tue', priceUSD: 1.18, priceZIG: 30.68, volume: 31200 },
+      { date: 'Wed', priceUSD: 1.16, priceZIG: 30.16, volume: 18400 },
+      { date: 'Thu', priceUSD: 1.20, priceZIG: 31.20, volume: 42000 },
+      { date: 'Fri', priceUSD: 1.22, priceZIG: 31.72, volume: 38900 },
+      { date: 'Sat', priceUSD: 1.21, priceZIG: 31.46, volume: 14200 },
+      { date: 'Sun', priceUSD: 1.25, priceZIG: 32.50, volume: 29800 }
+    ]
   },
   {
     id: 'sme-2',
@@ -97,14 +133,28 @@ export const INITIAL_STOCKS: SMEStock[] = [
     sector: 'Renewable Infrastructure',
     priceUSD: 0.85,
     priceZIG: 22.10,
+    change1h: 0.04,
     change24h: 1.8,
-    marketCap: '$7.5M',
+    marketCap: '$7.50M',
+    volume24h: '$320.10K',
+    txns24h: 2180,
+    tradersCount: 1290,
+    age: '6mo',
     dividendYield: 11.2,
     fractionalUnitsAvailable: 620000,
     backingTrust: 'ZSE Debtbridge Trust #411',
     description: 'Commercial solar mini-grid operator powering industrial clusters across Harare and Mutare under long-term USD power purchase agreements.',
     riskRating: 'Low',
-    image: 'https://images.unsplash.com/photo-1509391365360-e835036f47de?auto=format&fit=crop&w=600&q=80'
+    image: 'https://images.unsplash.com/photo-1509391365360-e835036f47de?auto=format&fit=crop&w=600&q=80',
+    priceHistory: [
+      { date: 'Mon', priceUSD: 0.81, priceZIG: 21.06, volume: 55000 },
+      { date: 'Tue', priceUSD: 0.82, priceZIG: 21.32, volume: 48000 },
+      { date: 'Wed', priceUSD: 0.83, priceZIG: 21.58, volume: 62000 },
+      { date: 'Thu', priceUSD: 0.82, priceZIG: 21.32, volume: 39000 },
+      { date: 'Fri', priceUSD: 0.84, priceZIG: 21.84, volume: 71000 },
+      { date: 'Sat', priceUSD: 0.84, priceZIG: 21.84, volume: 22000 },
+      { date: 'Sun', priceUSD: 0.85, priceZIG: 22.10, volume: 68000 }
+    ]
   },
   {
     id: 'sme-3',
@@ -113,14 +163,28 @@ export const INITIAL_STOCKS: SMEStock[] = [
     sector: 'Manufacturing',
     priceUSD: 0.45,
     priceZIG: 11.70,
+    change1h: -0.08,
     change24h: -0.5,
-    marketCap: '$1.8M',
+    marketCap: '$1.80M',
+    volume24h: '$95.40K',
+    txns24h: 890,
+    tradersCount: 452,
+    age: '2mo',
     dividendYield: 14.5,
     fractionalUnitsAvailable: 940000,
     backingTrust: 'ZSE Debtbridge Trust #388',
     description: 'Historic cotton and synthetic fabric manufacturer supplying SADC retail chains with automated looms and steady regional cash flows.',
     riskRating: 'Medium',
-    image: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=600&q=80'
+    image: 'https://images.unsplash.com/photo-1558769132-cb1aea458c5e?auto=format&fit=crop&w=600&q=80',
+    priceHistory: [
+      { date: 'Mon', priceUSD: 0.48, priceZIG: 12.48, volume: 19000 },
+      { date: 'Tue', priceUSD: 0.47, priceZIG: 12.22, volume: 25000 },
+      { date: 'Wed', priceUSD: 0.46, priceZIG: 11.96, volume: 18000 },
+      { date: 'Thu', priceUSD: 0.47, priceZIG: 12.22, volume: 22000 },
+      { date: 'Fri', priceUSD: 0.45, priceZIG: 11.70, volume: 31000 },
+      { date: 'Sat', priceUSD: 0.46, priceZIG: 11.96, volume: 12000 },
+      { date: 'Sun', priceUSD: 0.45, priceZIG: 11.70, volume: 28000 }
+    ]
   },
   {
     id: 'sme-4',
@@ -129,14 +193,28 @@ export const INITIAL_STOCKS: SMEStock[] = [
     sector: 'Logistics & FMCG',
     priceUSD: 2.10,
     priceZIG: 54.60,
+    change1h: 0.25,
     change24h: 6.7,
-    marketCap: '$12.0M',
+    marketCap: '$12.00M',
+    volume24h: '$540.80K',
+    txns24h: 4320,
+    tradersCount: 2150,
+    age: '5mo',
     dividendYield: 8.4,
     fractionalUnitsAvailable: 310000,
     backingTrust: 'ZSE Debtbridge Trust #450',
     description: 'Cold-storage supply chain connecting Zambian and Zimbabwean horticulture producers directly to supermarket distribution hubs.',
     riskRating: 'Low',
-    image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=600&q=80'
+    image: 'https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?auto=format&fit=crop&w=600&q=80',
+    priceHistory: [
+      { date: 'Mon', priceUSD: 1.92, priceZIG: 49.92, volume: 34000 },
+      { date: 'Tue', priceUSD: 1.95, priceZIG: 50.70, volume: 41000 },
+      { date: 'Wed', priceUSD: 1.98, priceZIG: 51.48, volume: 53000 },
+      { date: 'Thu', priceUSD: 2.02, priceZIG: 52.52, volume: 49000 },
+      { date: 'Fri', priceUSD: 2.05, priceZIG: 53.30, volume: 64000 },
+      { date: 'Sat', priceUSD: 2.07, priceZIG: 53.82, volume: 29000 },
+      { date: 'Sun', priceUSD: 2.10, priceZIG: 54.60, volume: 72000 }
+    ]
   },
   {
     id: 'sme-5',
@@ -145,14 +223,28 @@ export const INITIAL_STOCKS: SMEStock[] = [
     sector: 'Green Minerals',
     priceUSD: 3.40,
     priceZIG: 88.40,
+    change1h: 0.42,
     change24h: 12.4,
-    marketCap: '$24.5M',
+    marketCap: '$24.50M',
+    volume24h: '$1.45M',
+    txns24h: 8940,
+    tradersCount: 3820,
+    age: '8mo',
     dividendYield: 7.1,
     fractionalUnitsAvailable: 150000,
     backingTrust: 'ZSE Debtbridge Trust #512',
     description: 'Ethical lithium and tantalite processing plant utilizing AI ore-sorting technology with SECZim audited reserve backing.',
     riskRating: 'Growth',
-    image: 'https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?auto=format&fit=crop&w=600&q=80'
+    image: 'https://images.unsplash.com/photo-1578328819058-b69f3a3b0f6b?auto=format&fit=crop&w=600&q=80',
+    priceHistory: [
+      { date: 'Mon', priceUSD: 2.95, priceZIG: 76.70, volume: 88000 },
+      { date: 'Tue', priceUSD: 3.05, priceZIG: 79.30, volume: 94000 },
+      { date: 'Wed', priceUSD: 3.12, priceZIG: 81.12, volume: 112000 },
+      { date: 'Thu', priceUSD: 3.18, priceZIG: 82.68, volume: 105000 },
+      { date: 'Fri', priceUSD: 3.28, priceZIG: 85.28, volume: 138000 },
+      { date: 'Sat', priceUSD: 3.32, priceZIG: 86.32, volume: 45000 },
+      { date: 'Sun', priceUSD: 3.40, priceZIG: 88.40, volume: 160000 }
+    ]
   }
 ];
 

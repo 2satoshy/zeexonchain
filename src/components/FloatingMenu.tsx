@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Menu, X, Smartphone, Sparkles, TrendingUp, PieChart, LayoutDashboard, Coins } from 'lucide-react';
+import { Menu, X, Smartphone, Sparkles, TrendingUp, PieChart, LayoutDashboard, Coins, Building2, ArrowRightLeft } from 'lucide-react';
 import { TabType } from '../types';
 
 interface FloatingMenuProps {
@@ -12,11 +12,14 @@ export const FloatingMenu: React.FC<FloatingMenuProps> = ({ activeTab, setActive
 
   const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard, color: 'bg-slate-900 text-white' },
+    { id: 'trading', label: 'DEX Swap & Trading', icon: ArrowRightLeft, color: 'bg-indigo-600 text-white' },
+    { id: 'startupListing', label: 'Startup Listing & RWA', icon: Building2, color: 'bg-blue-600 text-white' },
     { id: 'whatsapp', label: 'WhatsApp Pay', icon: Smartphone, color: 'bg-emerald-600 text-white' },
     { id: 'aiAdvisor', label: 'ZEEX AI Copilot', icon: Sparkles, color: 'bg-purple-600 text-white' },
     { id: 'social', label: 'Social Timeline', icon: TrendingUp, color: 'bg-blue-600 text-white' },
     { id: 'zig', label: '$ZIG Hub', icon: Coins, color: 'bg-teal-700 text-white' },
   ];
+
 
   return (
     <div className="fixed bottom-20 right-6 z-40 flex flex-col items-end space-y-3">
