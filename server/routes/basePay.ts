@@ -105,7 +105,7 @@ router.post('/verify-and-fulfill', async (req: Request, res: Response) => {
 
     // 1. Check if transaction has already been processed (Replay Protection)
     const existing = store.getBasePaymentById(txId);
-    if (existing && (existing.status === 'COMPLETED' || existing.status === 'CONFIRMED' || existing.status === 'completed')) {
+    if (existing && (existing.status === 'COMPLETED' || existing.status === 'CONFIRMED')) {
       return res.status(400).json({
         success: false,
         error: 'Transaction already processed (Replay Protection)'
@@ -146,12 +146,12 @@ router.post('/verify-and-fulfill', async (req: Request, res: Response) => {
     });
 
     // 5. Deposit funds into user portfolio wallet balance
-    await store.depositFunds({
-      amountUSD: Number(amountUSD),
-      method: 'Base Pay (USDC on Base L2)',
-      reference: `BASE-PAY-${txId.slice(0, 8)}`,
-      tokenSymbol: 'USDC'
-    });
+    store.depositFunds(
+      Number(amountUSD),
+      'USDC',
+      'Base Pay (USDC on Base L2)',
+      sender || payerAddress
+    );
 
     res.json({
       success: true,

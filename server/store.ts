@@ -35,7 +35,7 @@ export interface BasePaymentRecord {
   recipient: string;
   payerAddress?: string;
   purpose: string;
-  status: 'INITIATED' | 'BROADCASTED' | 'CONFIRMED' | 'FAILED';
+  status: 'INITIATED' | 'BROADCASTED' | 'CONFIRMED' | 'COMPLETED' | 'FAILED';
   testnet: boolean;
   txHash?: string;
   createdAt: string;
@@ -905,7 +905,7 @@ class AppStore {
     recipient: string;
     payerAddress?: string;
     purpose: string;
-    status: 'INITIATED' | 'BROADCASTED' | 'CONFIRMED' | 'FAILED';
+    status: 'INITIATED' | 'BROADCASTED' | 'CONFIRMED' | 'COMPLETED' | 'FAILED';
     testnet?: boolean;
     txHash?: string;
   }): Promise<BasePaymentRecord> {
@@ -957,7 +957,7 @@ class AppStore {
     return this.basePayments.find(p => p.id === id);
   }
 
-  public async updateBasePaymentStatus(id: string, status: 'INITIATED' | 'BROADCASTED' | 'CONFIRMED' | 'FAILED', txHash?: string): Promise<BasePaymentRecord | null> {
+  public async updateBasePaymentStatus(id: string, status: 'INITIATED' | 'BROADCASTED' | 'CONFIRMED' | 'COMPLETED' | 'FAILED', txHash?: string): Promise<BasePaymentRecord | null> {
     const pay = this.basePayments.find(p => p.id === id);
     if (!pay) return null;
 
