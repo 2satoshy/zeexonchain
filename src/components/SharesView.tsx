@@ -22,6 +22,8 @@ import { StockPriceHistoryChart } from './StockPriceHistoryChart';
 import { StockTableView } from './StockTableView';
 import { StockDetailView } from './StockDetailView';
 import { generateStockPriceHistory } from '../data/mockData';
+import { BasePayButton } from '@base-org/account-ui/react';
+import { executeBasePay, ZEEX_BASE_TREASURY } from '../services/baseAccount';
 
 interface SharesViewProps {
   stocks: SMEStock[];
@@ -485,13 +487,48 @@ export const SharesView: React.FC<SharesViewProps> = ({ stocks, onBuyShares }) =
                 </div>
               </div>
 
-              <button
-                type="submit"
-                className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-4 rounded-2xl shadow-md transition-all flex items-center justify-center space-x-2 text-sm"
-              >
-                <span>Confirm Investment (${investUSD.toFixed(2)})</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
+              <div className="space-y-3 pt-1">
+                <button
+                  type="submit"
+                  className="w-full bg-slate-900 hover:bg-slate-800 text-white font-bold py-3.5 rounded-2xl shadow-sm transition-all flex items-center justify-center space-x-2 text-sm cursor-pointer"
+                >
+                  <span>Confirm with Portfolio Balance (${investUSD.toFixed(2)})</span>
+                  <ArrowRight className="w-4 h-4" />
+                </button>
+
+                <div className="relative flex py-1 items-center">
+                  <div className="flex-grow border-t border-slate-200"></div>
+                  <span className="flex-shrink mx-3 text-[11px] font-bold text-slate-400 uppercase">Or instant 1-tap</span>
+                  <div className="flex-grow border-t border-slate-200"></div>
+                </div>
+
+                <div className="flex flex-col items-center">
+                  <BasePayButton
+                    colorScheme="light"
+                    onClick={async () => {
+                      if (!modalStock) return;
+                      try {
+                        await executeBasePay({
+                          amountUSD: investUSD,
+                          recipient: ZEEX_BASE_TREASURY,
+                          testnet: true,
+                          purpose: `ZEEX Stock Purchase: ${modalStock.ticker}`
+                        });
+                        const units = Math.round((investUSD / modalStock.priceUSD) * 100000) / 100000;
+                        onBuyShares(modalStock, investUSD, units);
+                        setSuccessMessage(
+                          `Instant Base Pay confirmed! Purchased ${units.toLocaleString()} units of ${modalStock.ticker} on Base L2!`
+                        );
+                        setModalStock(null);
+                        setTimeout(() => setSuccessMessage(null), 5000);
+                      } catch (err: any) {
+                        console.error('Base Pay error in shares view:', err);
+                      }
+                    }}
+                  />
+                  <span className="text-[10px] text-slate-400 mt-1">One-tap settlement via Base Account SDK</span>
+                </div>
+              </div>
             </form>
           </div>
         </div>

@@ -10,6 +10,8 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "@base-org/account": "^2.5.10",
+    "@base-org/account-ui": "^1.0.1",
     "@coinbase/cdp-core": "^0.0.122",
     "@coinbase/cdp-hooks": "^0.0.122",
     "@coinbase/cdp-react": "^0.0.122",

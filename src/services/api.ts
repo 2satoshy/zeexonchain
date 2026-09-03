@@ -230,6 +230,10 @@ export const ApiService = {
     });
   },
 
+  async depositFunds(data: { amountUSD: number; method: string; reference?: string; walletAddress?: string }) {
+    return this.deposit(data.amountUSD, 'USDC', data.method || 'Base Pay', data.walletAddress);
+  },
+
   async send(amount: number, tokenSymbol: string, recipient: string, senderAddress?: string) {
     return fetchJson<{ success: boolean; message: string; data: { transaction: Transaction } }>('/wallet/send', {
       method: 'POST',
