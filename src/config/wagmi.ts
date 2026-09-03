@@ -1,10 +1,26 @@
 import { http, createConfig } from 'wagmi';
-import { baseSepolia } from 'wagmi/chains';
+import { baseSepolia, base } from 'wagmi/chains';
+import { baseAccount, metaMask, coinbaseWallet, injected } from 'wagmi/connectors';
 
 export const wagmiConfig = createConfig({
-  chains: [baseSepolia],
+  chains: [baseSepolia, base],
+  connectors: [
+    baseAccount({ 
+      appName: 'ZEEX Onchain Securities', 
+      appLogoUrl: 'https://base.org/logo.png' 
+    }),
+    metaMask({
+      dappMetadata: {
+        name: 'ZEEX Onchain Securities',
+        url: 'https://zeex.onchain',
+      }
+    }),
+    coinbaseWallet({ appName: 'ZEEX Onchain' }),
+    injected(),
+  ],
   transports: {
     [baseSepolia.id]: http('https://sepolia.base.org'),
+    [base.id]: http('https://mainnet.base.org'),
   },
 });
 

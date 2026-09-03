@@ -17,6 +17,7 @@ interface ProfileViewProps {
   onOpenSend?: () => void;
   onOpenSwap?: () => void;
   onOpenTokenize?: () => void;
+  onOpenConnectWallet?: (tab?: 'base' | 'metamask' | 'coinbase') => void;
 }
 
 export const ProfileView: React.FC<ProfileViewProps> = ({ 
@@ -29,7 +30,8 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onOpenDeposit,
   onOpenSend,
   onOpenSwap,
-  onOpenTokenize
+  onOpenTokenize,
+  onOpenConnectWallet
 }) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const totalPages = 5;
@@ -192,6 +194,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
               onOpenSend={onOpenSend}
               onOpenSwap={onOpenSwap}
               onOpenTokenize={onOpenTokenize}
+              onOpenConnectWallet={onOpenConnectWallet}
             />
 
             <div className="bg-gradient-to-br from-slate-900 via-slate-850 to-indigo-950 rounded-2xl sm:rounded-3xl p-5 sm:p-7 text-white border border-indigo-900/50 shadow-md space-y-5">

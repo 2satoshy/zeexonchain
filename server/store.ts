@@ -1,6 +1,7 @@
 import { SMEStock, InvoiceItem, DebtBridgeLoan, Transaction, TokenAsset, SocialPost, TradeOrder, StartupListingApplication } from '../src/types';
 import { INITIAL_STOCKS, INITIAL_INVOICES, INITIAL_LOANS, INITIAL_TRANSACTIONS, INITIAL_SOCIAL_POSTS, generateStockPriceHistory } from '../src/data/mockData';
 import { INITIAL_TOKENS } from '../src/data/tokenData';
+import { getMongoCollection, getDatabase } from './db/mongodb';
 
 export interface UserPortfolio {
   usdBalance: number;
@@ -26,6 +27,19 @@ export interface OracleRates {
   ethUSD: number;
   usdcUSD: number;
   lastUpdated: string;
+}
+
+export interface BasePaymentRecord {
+  id: string;
+  amountUSD: number;
+  recipient: string;
+  payerAddress?: string;
+  purpose: string;
+  status: 'INITIATED' | 'BROADCASTED' | 'CONFIRMED' | 'FAILED';
+  testnet: boolean;
+  txHash?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 class AppStore {
@@ -61,6 +75,7 @@ class AppStore {
       txHash: '0x8f7e6d5c4b3a2f1e0d9c8b7a6f5e4d3c2b1a0f9e'
     }
   ];
+  private basePayments: BasePaymentRecord[] = [];
   private startupApplications: StartupListingApplication[] = [];
 
   private userPortfolio: UserPortfolio = {
@@ -100,6 +115,148 @@ class AppStore {
     usdcUSD: 1.00,
     lastUpdated: new Date().toISOString()
   };
+
+  private isMongoSynced = false;
+
+  constructor() {
+    // Attempt non-blocking synchronization with MongoDB
+    this.syncWithMongoDB().catch(err => {
+      console.log('[Store] Initial MongoDB sync deferred:', err.message);
+    });
+  }
+
+  // --- MongoDB Synchronization Layer ---
+  public async syncWithMongoDB(): Promise<void> {
+    try {
+      const db = await getDatabase();
+      if (!db) return;
+
+      console.log('[Store] Synchronizing in-memory cache with MongoDB collections...');
+
+      // 1. Stocks collection
+      const stocksCol = db.collection('stocks');
+      const stockCount = await stocksCol.countDocuments();
+      if (stockCount === 0) {
+        await stocksCol.insertMany(JSON.parse(JSON.stringify(this.stocks)));
+        console.log(`[Store] Seeded ${this.stocks.length} SME stocks to MongoDB.`);
+      } else {
+        const mongoStocks = await stocksCol.find().toArray();
+        this.stocks = mongoStocks.map(({ _id, ...rest }) => rest as unknown as SMEStock);
+      }
+
+      // 2. Tokens collection
+      const tokensCol = db.collection('tokens');
+      const tokenCount = await tokensCol.countDocuments();
+      if (tokenCount === 0) {
+        await tokensCol.insertMany(JSON.parse(JSON.stringify(this.tokens)));
+        console.log(`[Store] Seeded ${this.tokens.length} tokens to MongoDB.`);
+      } else {
+        const mongoTokens = await tokensCol.find().toArray();
+        this.tokens = mongoTokens.map(({ _id, ...rest }) => rest as unknown as TokenAsset);
+      }
+
+      // 3. Invoices collection
+      const invoicesCol = db.collection('invoices');
+      const invoiceCount = await invoicesCol.countDocuments();
+      if (invoiceCount === 0) {
+        await invoicesCol.insertMany(JSON.parse(JSON.stringify(this.invoices)));
+        console.log(`[Store] Seeded ${this.invoices.length} invoices to MongoDB.`);
+      } else {
+        const mongoInvoices = await invoicesCol.find().toArray();
+        this.invoices = mongoInvoices.map(({ _id, ...rest }) => rest as unknown as InvoiceItem);
+      }
+
+      // 4. Loans collection
+      const loansCol = db.collection('loans');
+      const loanCount = await loansCol.countDocuments();
+      if (loanCount === 0) {
+        await loansCol.insertMany(JSON.parse(JSON.stringify(this.loans)));
+        console.log(`[Store] Seeded ${this.loans.length} DebtBridge loans to MongoDB.`);
+      } else {
+        const mongoLoans = await loansCol.find().toArray();
+        this.loans = mongoLoans.map(({ _id, ...rest }) => rest as unknown as DebtBridgeLoan);
+      }
+
+      // 5. Transactions collection
+      const txsCol = db.collection('transactions');
+      const txCount = await txsCol.countDocuments();
+      if (txCount === 0) {
+        await txsCol.insertMany(JSON.parse(JSON.stringify(this.transactions)));
+        console.log(`[Store] Seeded ${this.transactions.length} transactions to MongoDB.`);
+      } else {
+        const mongoTxs = await txsCol.find().sort({ $natural: -1 }).limit(100).toArray();
+        this.transactions = mongoTxs.map(({ _id, ...rest }) => rest as unknown as Transaction);
+      }
+
+      // 6. Social Posts
+      const socialCol = db.collection('social_posts');
+      const postCount = await socialCol.countDocuments();
+      if (postCount === 0) {
+        await socialCol.insertMany(JSON.parse(JSON.stringify(this.socialPosts)));
+        console.log(`[Store] Seeded ${this.socialPosts.length} social posts to MongoDB.`);
+      } else {
+        const mongoPosts = await socialCol.find().toArray();
+        this.socialPosts = mongoPosts.map(({ _id, ...rest }) => rest as unknown as SocialPost);
+      }
+
+      // 7. Trade Orders
+      const ordersCol = db.collection('trade_orders');
+      const orderCount = await ordersCol.countDocuments();
+      if (orderCount === 0) {
+        await ordersCol.insertMany(JSON.parse(JSON.stringify(this.tradeOrders)));
+      } else {
+        const mongoOrders = await ordersCol.find().toArray();
+        this.tradeOrders = mongoOrders.map(({ _id, ...rest }) => rest as unknown as TradeOrder);
+      }
+
+      // 8. User Portfolio
+      const portfolioCol = db.collection('user_portfolio');
+      const portfolioDoc = await portfolioCol.findOne({ id: 'primary_portfolio' });
+      if (!portfolioDoc) {
+        await portfolioCol.insertOne({ id: 'primary_portfolio', ...JSON.parse(JSON.stringify(this.userPortfolio)) });
+      } else {
+        const { _id, id, ...rest } = portfolioDoc as any;
+        this.userPortfolio = rest as UserPortfolio;
+      }
+
+      // 9. Base Payments
+      const basePayCol = db.collection('base_payments');
+      const payCount = await basePayCol.countDocuments();
+      if (payCount > 0) {
+        const mongoPayments = await basePayCol.find().sort({ createdAt: -1 }).limit(100).toArray();
+        this.basePayments = mongoPayments.map(({ _id, ...rest }) => rest as unknown as BasePaymentRecord);
+      }
+
+      this.isMongoSynced = true;
+      console.log('[Store] MongoDB bidirectional sync complete. All collections loaded.');
+    } catch (err: any) {
+      console.warn('[Store] MongoDB synchronization warning:', err.message);
+    }
+  }
+
+  // --- Helper to fire-and-forget persist changes to MongoDB ---
+  private async persistMongoDoc(collectionName: string, query: object, doc: object, upsert = true) {
+    try {
+      const col = await getMongoCollection(collectionName);
+      if (col) {
+        await col.updateOne(query, { $set: doc }, { upsert });
+      }
+    } catch (err: any) {
+      // Non-blocking log
+      console.warn(`[Store] Failed to persist to MongoDB ${collectionName}:`, err.message);
+    }
+  }
+
+  private async insertMongoDoc(collectionName: string, doc: object) {
+    try {
+      const col = await getMongoCollection(collectionName);
+      if (col) {
+        await col.insertOne(JSON.parse(JSON.stringify(doc)));
+      }
+    } catch (err: any) {
+      console.warn(`[Store] Failed to insert to MongoDB ${collectionName}:`, err.message);
+    }
+  }
 
   // --- Stocks API Methods ---
   public getStocks(filter?: { search?: string; sector?: string; sortBy?: string; sortOrder?: 'asc' | 'desc' }): SMEStock[] {
@@ -183,6 +340,11 @@ class AppStore {
 
     this.transactions.unshift(tx);
 
+    // Persist to MongoDB
+    this.persistMongoDoc('stocks', { id: stock.id }, stock);
+    this.persistMongoDoc('user_portfolio', { id: 'primary_portfolio' }, this.userPortfolio);
+    this.insertMongoDoc('transactions', tx);
+
     return {
       success: true,
       stock,
@@ -234,7 +396,7 @@ class AppStore {
     this.stocks.unshift(newStock);
 
     // Also register token asset
-    this.tokens.push({
+    const newToken: TokenAsset = {
       symbol: newStock.ticker,
       name: newStock.name,
       address: newStock.tokenAddress!,
@@ -247,7 +409,8 @@ class AppStore {
       stockTicker: newStock.ticker,
       icon: newStock.image,
       totalSupply: params.totalShares
-    });
+    };
+    this.tokens.push(newToken);
 
     const tx: Transaction = {
       id: `tx-tok-${Date.now()}`,
@@ -263,6 +426,11 @@ class AppStore {
       gasSponsored: true
     };
     this.transactions.unshift(tx);
+
+    // Persist to MongoDB
+    this.insertMongoDoc('stocks', newStock);
+    this.insertMongoDoc('tokens', newToken);
+    this.insertMongoDoc('transactions', tx);
 
     return { stock: newStock, transaction: tx };
   }
@@ -299,6 +467,9 @@ class AppStore {
     };
 
     this.transactions.unshift(tx);
+
+    this.persistMongoDoc('stocks', { id: stock.id }, stock);
+    this.insertMongoDoc('transactions', tx);
 
     return {
       success: true,
@@ -375,6 +546,10 @@ class AppStore {
 
     this.transactions.unshift(tx);
 
+    this.persistMongoDoc('tokens', { symbol: fromToken.symbol }, fromToken);
+    this.persistMongoDoc('tokens', { symbol: toToken.symbol }, toToken);
+    this.insertMongoDoc('transactions', tx);
+
     return {
       success: true,
       quote,
@@ -395,6 +570,7 @@ class AppStore {
       txHash: `0x${Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`
     };
     this.tradeOrders.unshift(newOrder);
+    this.insertMongoDoc('trade_orders', newOrder);
     return newOrder;
   }
 
@@ -402,6 +578,7 @@ class AppStore {
     const ord = this.tradeOrders.find(o => o.id === orderId);
     if (!ord) return false;
     ord.status = 'CANCELLED';
+    this.persistMongoDoc('trade_orders', { id: ord.id }, ord);
     return true;
   }
 
@@ -452,6 +629,9 @@ class AppStore {
     };
     this.transactions.unshift(tx);
 
+    this.insertMongoDoc('invoices', newInvoice);
+    this.insertMongoDoc('transactions', tx);
+
     return newInvoice;
   }
 
@@ -480,6 +660,9 @@ class AppStore {
       sender: investor || '0x71C...4b92'
     };
     this.transactions.unshift(tx);
+
+    this.persistMongoDoc('invoices', { id: invoice.id }, invoice);
+    this.insertMongoDoc('transactions', tx);
 
     return {
       success: true,
@@ -529,6 +712,9 @@ class AppStore {
     };
     this.transactions.unshift(tx);
 
+    this.insertMongoDoc('loans', newLoan);
+    this.insertMongoDoc('transactions', tx);
+
     return newLoan;
   }
 
@@ -574,6 +760,12 @@ class AppStore {
 
     this.transactions.unshift(tx);
 
+    if (token) {
+      this.persistMongoDoc('tokens', { symbol: token.symbol }, token);
+    }
+    this.persistMongoDoc('user_portfolio', { id: 'primary_portfolio' }, this.userPortfolio);
+    this.insertMongoDoc('transactions', tx);
+
     return {
       success: true,
       amount,
@@ -615,6 +807,12 @@ class AppStore {
 
     this.transactions.unshift(tx);
 
+    if (token) {
+      this.persistMongoDoc('tokens', { symbol: token.symbol }, token);
+    }
+    this.persistMongoDoc('user_portfolio', { id: 'primary_portfolio' }, this.userPortfolio);
+    this.insertMongoDoc('transactions', tx);
+
     return {
       success: true,
       amount,
@@ -651,6 +849,9 @@ class AppStore {
     };
     this.transactions.unshift(tx);
 
+    this.persistMongoDoc('user_portfolio', { id: 'primary_portfolio' }, this.userPortfolio);
+    this.insertMongoDoc('transactions', tx);
+
     return {
       success: true,
       action,
@@ -684,6 +885,7 @@ class AppStore {
       isLiked: false
     };
     this.socialPosts.unshift(newPost);
+    this.insertMongoDoc('social_posts', newPost);
     return newPost;
   }
 
@@ -692,7 +894,79 @@ class AppStore {
     if (!p) return false;
     p.isLiked = !p.isLiked;
     p.likes += p.isLiked ? 1 : -1;
+    this.persistMongoDoc('social_posts', { id: p.id }, p);
     return true;
+  }
+
+  // --- Base Account SDK Payments Tracking in MongoDB ---
+  public async recordBasePayment(payment: {
+    id: string;
+    amountUSD: number;
+    recipient: string;
+    payerAddress?: string;
+    purpose: string;
+    status: 'INITIATED' | 'BROADCASTED' | 'CONFIRMED' | 'FAILED';
+    testnet?: boolean;
+    txHash?: string;
+  }): Promise<BasePaymentRecord> {
+    const now = new Date().toISOString();
+    const record: BasePaymentRecord = {
+      ...payment,
+      testnet: payment.testnet !== false,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    // Keep in memory
+    const existingIdx = this.basePayments.findIndex(p => p.id === payment.id);
+    if (existingIdx >= 0) {
+      this.basePayments[existingIdx] = record;
+    } else {
+      this.basePayments.unshift(record);
+    }
+
+    // Also record transaction
+    const tx: Transaction = {
+      id: `tx-basepay-${Date.now()}`,
+      type: 'DEPOSIT',
+      title: `Base Pay: ${payment.purpose}`,
+      amountUSD: payment.amountUSD,
+      amountZIG: payment.amountUSD * this.oracleRates.usdZig,
+      timestamp: 'Just now',
+      status: payment.status === 'CONFIRMED' ? 'Completed' : 'Pending',
+      reference: `BASE-PAY-${payment.id.slice(0, 8).toUpperCase()}`,
+      txHash: payment.txHash || `0x${payment.id.replace(/-/g, '').padEnd(64, '0').slice(0, 64)}`,
+      gasSponsored: true,
+      sender: payment.payerAddress || '0xBaseAccountPasskey',
+      receiver: payment.recipient
+    };
+    this.transactions.unshift(tx);
+
+    // Persist to MongoDB
+    await this.persistMongoDoc('base_payments', { id: record.id }, record);
+    await this.insertMongoDoc('transactions', tx);
+
+    return record;
+  }
+
+  public getBasePayments(limit = 50): BasePaymentRecord[] {
+    return this.basePayments.slice(0, limit);
+  }
+
+  public getBasePaymentById(id: string): BasePaymentRecord | undefined {
+    return this.basePayments.find(p => p.id === id);
+  }
+
+  public async updateBasePaymentStatus(id: string, status: 'INITIATED' | 'BROADCASTED' | 'CONFIRMED' | 'FAILED', txHash?: string): Promise<BasePaymentRecord | null> {
+    const pay = this.basePayments.find(p => p.id === id);
+    if (!pay) return null;
+
+    pay.status = status;
+    pay.updatedAt = new Date().toISOString();
+    if (txHash) pay.txHash = txHash;
+
+    await this.persistMongoDoc('base_payments', { id }, pay);
+    return pay;
   }
 }
 

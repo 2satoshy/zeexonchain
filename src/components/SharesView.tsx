@@ -24,6 +24,7 @@ import { StockDetailView } from './StockDetailView';
 import { generateStockPriceHistory } from '../data/mockData';
 import { BasePayButton } from '@base-org/account-ui/react';
 import { executeBasePay, ZEEX_BASE_TREASURY } from '../services/baseAccount';
+import { useCurrency } from '../context/CurrencyContext';
 
 interface SharesViewProps {
   stocks: SMEStock[];
@@ -31,6 +32,7 @@ interface SharesViewProps {
 }
 
 export const SharesView: React.FC<SharesViewProps> = ({ stocks, onBuyShares }) => {
+  const { currencyMode, formatStockPrice, formatAmount, oracleRate } = useCurrency();
   // Mode: summarized Table or Grid Cards
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
   
@@ -262,9 +264,9 @@ export const SharesView: React.FC<SharesViewProps> = ({ stocks, onBuyShares }) =
                           </h3>
                           <div className="text-right">
                             <span className="text-lg font-extrabold text-slate-900">
-                              ${stock.priceUSD.toFixed(2)}
+                              {formatStockPrice(stock.priceUSD).primary}
                             </span>
-                            <div className="text-xs text-slate-500">ZIG {stock.priceZIG.toFixed(2)}</div>
+                            <div className="text-xs text-slate-500">{formatStockPrice(stock.priceUSD).secondary}</div>
                           </div>
                         </div>
 
@@ -387,7 +389,7 @@ export const SharesView: React.FC<SharesViewProps> = ({ stocks, onBuyShares }) =
               <div>
                 <h3 className="font-bold text-slate-900">{modalStock.name}</h3>
                 <span className="text-xs text-slate-500">
-                  {modalStock.ticker} • ${modalStock.priceUSD.toFixed(2)} per share
+                  {modalStock.ticker} • {formatStockPrice(modalStock.priceUSD).primary} per share ({formatStockPrice(modalStock.priceUSD).secondary})
                 </span>
               </div>
             </div>
@@ -404,7 +406,7 @@ export const SharesView: React.FC<SharesViewProps> = ({ stocks, onBuyShares }) =
                   <span>7D Price Performance History</span>
                 </div>
                 <div className="text-[11px] font-semibold text-slate-600">
-                  Quote: <span className="font-bold text-slate-900">${modalStock.priceUSD.toFixed(2)}</span>
+                  Quote: <span className="font-bold text-slate-900">{formatStockPrice(modalStock.priceUSD).primary}</span>
                 </div>
               </div>
               <StockPriceHistoryChart

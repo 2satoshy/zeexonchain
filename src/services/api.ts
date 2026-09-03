@@ -290,5 +290,63 @@ export const ApiService = {
 
   async getMarketNews() {
     return fetchJson<{ news: any[]; grounded: boolean }>('/market-news');
+  },
+
+  // MongoDB Status & Database Sync
+  async getMongoStatus() {
+    return fetchJson<{
+      success: boolean;
+      database: string;
+      network: string;
+      status: {
+        connected: boolean;
+        connecting: boolean;
+        dbName: string;
+        uriConfigured: boolean;
+        mode: string;
+        message: string;
+        lastConnectedAt?: string;
+        collections?: { [key: string]: number };
+        error?: string;
+      };
+    }>('/mongodb/status');
+  },
+
+  async syncMongoDatabase() {
+    return fetchJson<{ success: boolean; message: string; status: any }>('/mongodb/sync', {
+      method: 'POST',
+    });
+  },
+
+  // Base Pay Database Tracking
+  async recordBasePayment(payment: {
+    id: string;
+    amountUSD: number;
+    recipient: string;
+    payerAddress?: string;
+    purpose?: string;
+    status?: 'INITIATED' | 'BROADCASTED' | 'CONFIRMED' | 'FAILED';
+    testnet?: boolean;
+    txHash?: string;
+  }) {
+    return fetchJson<{ success: boolean; message: string; data: any }>('/base-pay/record', {
+      method: 'POST',
+      body: JSON.stringify(payment),
+    });
+  },
+
+  async getBasePaymentHistory(limit = 50) {
+    return fetchJson<{ success: boolean; count: number; data: any[] }>(`/base-pay/history?limit=${limit}`);
+  },
+
+  async getBasePaymentById(id: string) {
+    return fetchJson<{ success: boolean; data: any }>(`/base-pay/${encodeURIComponent(id)}`);
+  },
+
+  async verifyBasePayment(id: string, status: string, txHash?: string) {
+    return fetchJson<{ success: boolean; message: string; data: any }>('/base-pay/verify', {
+      method: 'POST',
+      body: JSON.stringify({ id, status, txHash }),
+    });
   }
 };

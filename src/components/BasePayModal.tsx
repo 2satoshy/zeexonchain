@@ -70,8 +70,18 @@ export const BasePayModal: React.FC<BasePayModalProps> = ({
       setPaymentId(id);
       setPaymentStatus('Payment broadcasted! Verifying on Base L2...');
 
-      // Record transaction to ZEEX backend API
+      // Record transaction to ZEEX backend API and MongoDB
       try {
+        await ApiService.recordBasePayment({
+          id,
+          amountUSD: targetAmount,
+          recipient,
+          payerAddress: userAddress || undefined,
+          purpose,
+          status: 'CONFIRMED',
+          testnet: true
+        });
+
         await ApiService.depositFunds({
           amountUSD: targetAmount,
           method: 'Base Pay (USDC on Base L2)',

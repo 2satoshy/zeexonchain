@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { SMEStock } from '../types';
 import { ArrowUpDown, ArrowUp, ArrowDown, CheckCircle2, Search, SlidersHorizontal, Sparkles } from 'lucide-react';
+import { useCurrency } from '../context/CurrencyContext';
 
 interface StockTableViewProps {
   stocks: SMEStock[];
@@ -16,6 +17,7 @@ export const StockTableView: React.FC<StockTableViewProps> = ({
   onSelectStock,
   onQuickBuy
 }) => {
+  const { currencyMode, formatStockPrice } = useCurrency();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSector, setSelectedSector] = useState('All');
   const [sortField, setSortField] = useState<SortField>('marketCap');
@@ -193,7 +195,7 @@ export const StockTableView: React.FC<StockTableViewProps> = ({
                   className="py-3.5 px-4 font-semibold text-slate-600 text-right cursor-pointer group hover:text-slate-900"
                 >
                   <span className="inline-flex items-center justify-end">
-                    Price
+                    Price ({currencyMode})
                     {renderSortIndicator('priceUSD')}
                   </span>
                 </th>
@@ -356,10 +358,10 @@ export const StockTableView: React.FC<StockTableViewProps> = ({
                       {/* Price */}
                       <td className="py-3.5 px-4 text-right">
                         <div className="font-semibold text-slate-900 text-sm">
-                          ${stock.priceUSD >= 1 ? stock.priceUSD.toFixed(2) : stock.priceUSD.toFixed(3)}
+                          {formatStockPrice(stock.priceUSD).primary}
                         </div>
                         <div className="text-[10px] text-slate-400">
-                          ZIG {stock.priceZIG ? stock.priceZIG.toFixed(2) : (stock.priceUSD * 26).toFixed(2)}
+                          {formatStockPrice(stock.priceUSD).secondary}
                         </div>
                       </td>
 

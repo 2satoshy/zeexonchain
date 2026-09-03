@@ -7,6 +7,7 @@ import { DividendsSection } from './DividendsSection';
 import { SectorTreemap } from './SectorTreemap';
 import { PaginationBar } from './PaginationBar';
 import { SwipeableContainer } from './SwipeableContainer';
+import { HomeHeroSwipeCard } from './HomeHeroSwipeCard';
 
 interface DashboardViewProps {
   stocks: SMEStock[];
@@ -48,6 +49,13 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const handleSwipeRight = () => {
     if (currentPage > 1) setCurrentPage(prev => prev - 1);
   };
+
+  const computedTotalUSD = tokens && tokens.length > 0
+    ? tokens.reduce((sum, t) => sum + (t.balance * t.priceUSD), 0)
+    : 4260.50;
+  const totalPortfolioUSD = computedTotalUSD > 0 ? computedTotalUSD : 4260.50;
+  const zigToken = tokens.find(t => t.symbol === 'ZIG');
+  const zigBalance = zigToken ? zigToken.balance : 36933.00;
 
   return (
     <div className="space-y-6">
@@ -95,111 +103,20 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           {/* PAGE 1: Net Worth & 5 Interlocking Products */}
           {currentPage === 1 && (
             <div className="space-y-6 animate-fade-in">
-              {/* Welcome Banner & Net Worth Card */}
-              <div className="bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 rounded-3xl p-6 sm:p-8 text-white shadow-xl relative overflow-hidden">
-                <div className="absolute right-0 top-0 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none"></div>
-                <div className="absolute left-1/3 bottom-0 w-64 h-64 bg-blue-500/10 rounded-full blur-3xl pointer-events-none"></div>
-
-                <div className="relative z-10 flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
-                  <div>
-                    <div 
-                      onClick={() => setActiveTab('shares')}
-                      className="flex items-baseline space-x-3 cursor-pointer group"
-                      title="View all portfolio holdings"
-                    >
-                      <span className="text-3xl sm:text-4xl font-extrabold tracking-tight group-hover:text-emerald-400 transition-colors">$4,260.50</span>
-                      <span className="text-emerald-400 text-sm font-semibold flex items-center bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                        <TrendingUp className="w-3.5 h-3.5 mr-1" /> +14.8% this month
-                      </span>
-                    </div>
-                    <div className="text-xs text-slate-400 mt-1">
-                      Equivalent: <span className="text-white font-medium">ZIG 110,773.00</span> (@ 26.00 rate)
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2.5 w-full md:w-auto">
-                    <button
-                      onClick={onOpenDeposit ? onOpenDeposit : () => onQuickAction('deposit')}
-                      className="flex-1 md:flex-none flex items-center justify-center space-x-1.5 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold px-4 py-2.5 rounded-2xl transition-all shadow-md text-xs sm:text-sm cursor-pointer"
-                    >
-                      <Plus className="w-4 h-4" />
-                      <span>Deposit</span>
-                    </button>
-                    <button
-                      onClick={onOpenSend ? onOpenSend : () => setActiveTab('profile')}
-                      className="flex-1 md:flex-none flex items-center justify-center space-x-1.5 bg-blue-600 hover:bg-blue-500 text-white font-bold px-4 py-2.5 rounded-2xl transition-all shadow-md text-xs sm:text-sm cursor-pointer"
-                    >
-                      <Send className="w-4 h-4" />
-                      <span>Send</span>
-                    </button>
-                    <button
-                      onClick={onOpenSwap ? onOpenSwap : () => setActiveTab('trading')}
-                      className="flex-1 md:flex-none flex items-center justify-center space-x-1.5 bg-white/15 hover:bg-white/25 text-white font-bold px-4 py-2.5 rounded-2xl backdrop-blur-md transition-all text-xs sm:text-sm border border-white/10 cursor-pointer"
-                    >
-                      <ArrowRightLeft className="w-4 h-4 text-emerald-400" />
-                      <span>Swap DEX</span>
-                    </button>
-                    <button
-                      onClick={onOpenTokenize ? onOpenTokenize : () => setActiveTab('startupListing')}
-                      className="flex-1 md:flex-none flex items-center justify-center space-x-1.5 bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2.5 rounded-2xl transition-all text-xs sm:text-sm cursor-pointer"
-                    >
-                      <Building2 className="w-4 h-4" />
-                      <span>Tokenize</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Mini Balance Breakdown Bar */}
-                <div className="mt-8 pt-6 border-t border-slate-700/60 grid grid-cols-2 sm:grid-cols-4 gap-4">
-                  <div 
-                    onClick={() => setActiveTab('zig')}
-                    className="cursor-pointer bg-white/10 hover:bg-white/15 border border-white/15 p-4 rounded-2xl transition-all group flex flex-col justify-between shadow-sm"
-                    title="Go to $ZIG Hub & USDC Onramp"
-                  >
-                    <div className="flex justify-between items-center text-xs text-slate-300 font-medium mb-1">
-                      <span>USD / USDC</span>
-                      <span className="text-emerald-400 group-hover:translate-x-0.5 transition-transform">↗</span>
-                    </div>
-                    <div className="text-lg font-bold text-white">$1,420.50</div>
-                  </div>
-
-                  <div 
-                    onClick={() => setActiveTab('zig')}
-                    className="cursor-pointer bg-white/10 hover:bg-white/15 border border-white/15 p-4 rounded-2xl transition-all group flex flex-col justify-between shadow-sm"
-                    title="Go to $ZIG Gold Stablecoin Hub"
-                  >
-                    <div className="flex justify-between items-center text-xs text-slate-300 font-medium mb-1">
-                      <span>$ZIG Stablecoin</span>
-                      <span className="text-emerald-400 group-hover:translate-x-0.5 transition-transform">↗</span>
-                    </div>
-                    <div className="text-lg font-bold text-emerald-400">ZIG 36,933</div>
-                  </div>
-
-                  <div 
-                    onClick={() => setActiveTab('shares')}
-                    className="cursor-pointer bg-white/10 hover:bg-white/15 border border-white/15 p-4 rounded-2xl transition-all group flex flex-col justify-between shadow-sm"
-                    title="Go to ZEEX Stocks & Fractional Access"
-                  >
-                    <div className="flex justify-between items-center text-xs text-slate-300 font-medium mb-1">
-                      <span>Token Equities</span>
-                      <span className="text-blue-400 group-hover:translate-x-0.5 transition-transform">↗</span>
-                    </div>
-                    <div className="text-lg font-bold text-white">$2,840.00</div>
-                  </div>
-
-                  <div 
-                    onClick={() => setActiveTab('invoiceX')}
-                    className="cursor-pointer bg-white/10 hover:bg-white/15 border border-white/15 p-4 rounded-2xl transition-all group flex flex-col justify-between shadow-sm"
-                    title="Go to InvoiceX Discounting"
-                  >
-                    <div className="flex justify-between items-center text-xs text-slate-300 font-medium mb-1">
-                      <span>Invoice Yield</span>
-                      <span className="text-purple-400 group-hover:translate-x-0.5 transition-transform">↗</span>
-                    </div>
-                    <div className="text-lg font-bold text-blue-400">14.2% APY</div>
-                  </div>
-                </div>
-              </div>
+              {/* Swipeable Home Hero Card (Overview & All Asset Balances) */}
+              <HomeHeroSwipeCard
+                stocks={stocks}
+                tokens={tokens}
+                totalBalanceUSD={totalPortfolioUSD}
+                zigBalance={zigBalance}
+                oracleRate={26.00}
+                setActiveTab={setActiveTab}
+                onQuickAction={onQuickAction}
+                onOpenDeposit={onOpenDeposit}
+                onOpenSend={onOpenSend}
+                onOpenSwap={onOpenSwap}
+                onOpenTokenize={onOpenTokenize}
+              />
 
               {/* 5 Interlocking Products Grid */}
               <div>

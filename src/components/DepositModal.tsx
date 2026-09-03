@@ -14,6 +14,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { SignInWithBaseButton, BasePayButton } from '@base-org/account-ui/react';
+import { useAccount, useConnect } from 'wagmi';
 import { UNISWAP_V3_ADDRESSES } from '../data/tokenData';
 import { baseAccountSDK, executeBasePay, checkBasePaymentStatus, ZEEX_BASE_TREASURY } from '../services/baseAccount';
 
@@ -30,6 +31,9 @@ export const DepositModal: React.FC<DepositModalProps> = ({
   userAddress,
   onDepositSuccess
 }) => {
+  const { address: wagmiAddr, isConnected: isWagmiConnected, connector } = useAccount();
+  const { connectors, connect } = useConnect();
+
   const [activeDepositTab, setActiveDepositTab] = useState<'basepay' | 'crypto' | 'faucet' | 'card' | 'ecocash'>('basepay');
   const [copied, setCopied] = useState(false);
   const [fiatAmount, setFiatAmount] = useState<number>(250);
@@ -44,14 +48,23 @@ export const DepositModal: React.FC<DepositModalProps> = ({
   const [basePayStatus, setBasePayStatus] = useState<string | null>(null);
   const [isCheckingBaseStatus, setIsCheckingBaseStatus] = useState(false);
 
+  const isBaseLinked = Boolean(
+    isBaseSignedIn || (isWagmiConnected && connector?.name?.toLowerCase().includes('base'))
+  );
+
   if (!isOpen) return null;
 
   const displayAddress = userAddress || '0x71C824aD3Fe479B92c578f142EbF472bC19638A9';
 
   const handleBaseSignIn = async () => {
     try {
-      const provider = baseAccountSDK.getProvider();
-      await provider.request({ method: 'wallet_connect' });
+      const baseConnector = connectors.find(c => c.id === 'baseAccount' || c.name.toLowerCase().includes('base'));
+      if (baseConnector) {
+        connect({ connector: baseConnector });
+      } else {
+        const provider = baseAccountSDK.getProvider();
+        await provider.request({ method: 'wallet_connect' });
+      }
       setIsBaseSignedIn(true);
     } catch (err) {
       console.warn('Base sign in note:', err);
@@ -283,7 +296,7 @@ export const DepositModal: React.FC<DepositModalProps> = ({
 
             {/* Base UI Buttons */}
             <div className="space-y-3 flex flex-col items-center">
-              {!isBaseSignedIn ? (
+              {!isBaseLinked ? (
                 <div className="flex flex-col items-center w-full">
                   <SignInWithBaseButton
                     align="center"

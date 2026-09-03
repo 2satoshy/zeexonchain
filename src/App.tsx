@@ -22,6 +22,7 @@ import { DepositModal } from './components/DepositModal';
 import { SendModal } from './components/SendModal';
 import { StockTokenizationModal, StockBurnSuccessParams } from './components/StockTokenizationModal';
 import { ApiExplorerModal } from './components/ApiExplorerModal';
+import { ConnectWalletModal } from './components/ConnectWalletModal';
 import { FloatingMenu } from './components/FloatingMenu';
 import { BottomNav } from './components/BottomNav';
 import { OnchainLiveStatusBadge } from './components/OnchainLiveStatusBadge';
@@ -54,8 +55,15 @@ export default function App() {
   const [isSendOpen, setIsSendOpen] = useState(false);
   const [isTokenizeOpen, setIsTokenizeOpen] = useState(false);
   const [isApiExplorerOpen, setIsApiExplorerOpen] = useState(false);
+  const [isConnectWalletOpen, setIsConnectWalletOpen] = useState(false);
+  const [connectWalletDefaultTab, setConnectWalletDefaultTab] = useState<'base' | 'metamask' | 'coinbase'>('base');
   const [selectedDepositToken, setSelectedDepositToken] = useState<TokenAsset | undefined>(undefined);
   const [selectedSendToken, setSelectedSendToken] = useState<TokenAsset | undefined>(undefined);
+
+  const handleOpenConnectWallet = (tab: 'base' | 'metamask' | 'coinbase' = 'base') => {
+    setConnectWalletDefaultTab(tab);
+    setIsConnectWalletOpen(true);
+  };
 
   // Initial fetch from backend REST API
   useEffect(() => {
@@ -612,6 +620,7 @@ export default function App() {
         onOpenSend={() => handleOpenSend()}
         onOpenTokenize={() => handleOpenTokenize()}
         onOpenApiExplorer={() => setIsApiExplorerOpen(true)}
+        onOpenConnectWallet={handleOpenConnectWallet}
       />
 
       <div className="hidden md:block">
@@ -721,6 +730,7 @@ export default function App() {
             onOpenSend={() => handleOpenSend()}
             onOpenSwap={() => setActiveTab('trading')}
             onOpenTokenize={() => handleOpenTokenize()}
+            onOpenConnectWallet={handleOpenConnectWallet}
           />
         )}
       </main>
@@ -754,6 +764,12 @@ export default function App() {
       <ApiExplorerModal
         isOpen={isApiExplorerOpen}
         onClose={() => setIsApiExplorerOpen(false)}
+      />
+
+      <ConnectWalletModal
+        isOpen={isConnectWalletOpen}
+        onClose={() => setIsConnectWalletOpen(false)}
+        defaultTab={connectWalletDefaultTab}
       />
 
       {/* Floating Vertical Menu & Bottom Nav */}

@@ -10,9 +10,24 @@ import loansRouter from "./server/routes/loans";
 import walletRouter from "./server/routes/wallet";
 import socialRouter from "./server/routes/social";
 import systemRouter from "./server/routes/system";
+import mongodbRouter from "./server/routes/mongodb";
+import basePayRouter from "./server/routes/basePay";
+import { initMongoDatabase, getMongoStatus } from "./server/db/mongodb";
+import { store } from "./server/store";
 
 const app = express();
 const PORT = 3000;
+
+// Next.js API compatibility & CORS headers
+app.use((req, res, next) => {
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With");
+  if (req.method === "OPTIONS") {
+    return res.status(204).end();
+  }
+  next();
+});
 
 app.use(express.json());
 
@@ -25,16 +40,27 @@ function getGeminiClient() {
   return aiClient;
 }
 
-// API Health check & Documentation Index
-app.get("/api/health", (req, res) => {
+// API Health check & Documentation Index with MongoDB status
+app.get("/api/health", async (req, res) => {
+  const mongoStatus = await getMongoStatus();
   res.json({
     status: "ok",
-    version: "2.0.0",
+    version: "2.1.0",
     name: "ZEEX Onchain Securities API",
     network: "Base Sepolia (L2)",
     standard: "ERC-3643 Permissioned",
+    database: {
+      engine: "MongoDB",
+      connected: mongoStatus.connected,
+      dbName: mongoStatus.dbName,
+      uriConfigured: mongoStatus.uriConfigured,
+      mode: mongoStatus.connected ? "ACTIVE_MONGODB_PERSISTENCE" : "IN_MEMORY_FALLBACK",
+      collections: mongoStatus.collections || {}
+    },
     timestamp: new Date().toISOString(),
     endpoints: {
+      database: ["GET /api/mongodb/status", "POST /api/mongodb/sync"],
+      basePay: ["POST /api/base-pay/record", "GET /api/base-pay/history", "GET /api/base-pay/:id", "POST /api/base-pay/verify"],
       stocks: ["GET /api/stocks", "GET /api/stocks/:id", "POST /api/stocks/buy", "POST /api/stocks/tokenize", "POST /api/stocks/burn"],
       dex: ["GET /api/dex/tokens", "POST /api/dex/quote", "POST /api/dex/swap", "GET /api/dex/orders", "POST /api/dex/orders", "DELETE /api/dex/orders/:id"],
       invoices: ["GET /api/invoices", "GET /api/invoices/:id", "POST /api/invoices", "POST /api/invoices/fund"],
@@ -48,6 +74,8 @@ app.get("/api/health", (req, res) => {
 });
 
 // Mount modular sub-routers
+app.use("/api/mongodb", mongodbRouter);
+app.use("/api/base-pay", basePayRouter);
 app.use("/api/stocks", stocksRouter);
 app.use("/api/dex", dexRouter);
 app.use("/api/invoices", invoicesRouter);
@@ -213,6 +241,17 @@ app.get("/api/market-news", async (req, res) => {
 });
 
 async function startServer() {
+  // Initialize MongoDB connection in the background
+  initMongoDatabase()
+    .then(async (connected) => {
+      if (connected) {
+        await store.syncWithMongoDB();
+      }
+    })
+    .catch((err) => {
+      console.warn("[MongoDB] Startup connection note:", err.message);
+    });
+
   // Vite middleware for development
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({

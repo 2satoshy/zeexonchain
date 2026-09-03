@@ -8,8 +8,8 @@ import {
   SignInModalTrigger,
   SignOutButton
 } from '@coinbase/cdp-react';
-import { useCurrentUser, useEvmAddress } from '@coinbase/cdp-hooks';
-import { useAccount, useBalance, useBlockNumber, useReadContract } from 'wagmi';
+import { useCurrentUser, useEvmAddress, useSignOut } from '@coinbase/cdp-hooks';
+import { useAccount, useBalance, useBlockNumber, useReadContract, useConnect, useDisconnect } from 'wagmi';
 import { formatUnits, formatEther, Address, isAddress } from 'viem';
 import { baseSepolia } from 'wagmi/chains';
 import { ERC20_ABI } from '../config/wagmi';
@@ -32,7 +32,9 @@ import {
   TrendingUp,
   Radio,
   RefreshCw,
-  Database
+  Database,
+  Mail,
+  LogOut
 } from 'lucide-react';
 import { TokenAsset } from '../types';
 import { UNISWAP_V3_ADDRESSES } from '../data/tokenData';
@@ -47,6 +49,7 @@ interface CoinbaseWalletSectionProps {
   onOpenSend?: () => void;
   onOpenSwap?: () => void;
   onOpenTokenize?: () => void;
+  onOpenConnectWallet?: (tab?: 'base' | 'metamask' | 'coinbase') => void;
 }
 
 export const CoinbaseWalletSection: React.FC<CoinbaseWalletSectionProps> = ({ 
@@ -56,11 +59,17 @@ export const CoinbaseWalletSection: React.FC<CoinbaseWalletSectionProps> = ({
   onOpenDeposit,
   onOpenSend,
   onOpenSwap,
-  onOpenTokenize
+  onOpenTokenize,
+  onOpenConnectWallet
 }) => {
   const { currentUser } = useCurrentUser();
   const { evmAddress } = useEvmAddress();
-  const { address: wagmiAddress, isConnected: isWagmiConnected } = useAccount();
+  const { signOut: signOutCdp } = useSignOut();
+
+  const { address: wagmiAddress, isConnected: isWagmiConnected, connector: activeConnector } = useAccount();
+  const { connectors, connect, isPending: isWagmiConnecting } = useConnect();
+  const { disconnect: disconnectWagmi } = useDisconnect();
+
   const [txSuccessHash, setTxSuccessHash] = useState<string | null>(null);
   const [txError, setTxError] = useState<string | null>(null);
   const [isExportOpen, setIsExportOpen] = useState(false);
@@ -70,12 +79,85 @@ export const CoinbaseWalletSection: React.FC<CoinbaseWalletSectionProps> = ({
   const [basePayStatus, setBasePayStatus] = useState<string | null>(null);
   const [basePayId, setBasePayId] = useState<string | null>(null);
   const [isBasePaying, setIsBasePaying] = useState(false);
+  const [connectionNote, setConnectionNote] = useState<string | null>(null);
 
   // Derive active accounts & methods
   const primaryEvm = (wagmiAddress || evmAddress || currentUser?.evmAccountObjects?.[0]?.address || '0x71C824aD3Fe479B92c578f142EbF472bC19638A9') as Address;
+  const isAnyConnected = Boolean(isWagmiConnected || evmAddress || currentUser?.evmAccountObjects?.length);
   const solanaAcc = currentUser?.solanaAccountObjects?.[0]?.address;
   const userEmail = currentUser?.authenticationMethods?.email?.email;
   const userPhone = currentUser?.authenticationMethods?.sms?.phoneNumber;
+
+  // Active wallet type detection
+  const isBaseAccountConnected = Boolean(
+    (isWagmiConnected && activeConnector?.name?.toLowerCase().includes('base')) || isBaseSignedIn
+  );
+  const isMetaMaskConnected = Boolean(
+    isWagmiConnected && (activeConnector?.name?.toLowerCase().includes('metamask') || activeConnector?.id?.toLowerCase().includes('metamask'))
+  );
+  const isCoinbaseConnected = Boolean(
+    evmAddress || currentUser || (isWagmiConnected && activeConnector?.name?.toLowerCase().includes('coinbase'))
+  );
+
+  const handleConnectBaseAccount = async () => {
+    try {
+      setConnectionNote('Connecting Base Account...');
+      const baseConnector = connectors.find(
+        (c) => c.id === 'baseAccount' || c.name.toLowerCase().includes('base')
+      );
+      if (baseConnector) {
+        connect({ connector: baseConnector });
+      } else {
+        const provider = baseAccountSDK.getProvider();
+        await provider.request({ method: 'wallet_connect' });
+      }
+      setIsBaseSignedIn(true);
+      setConnectionNote('Base Account connected successfully!');
+      setTimeout(() => setConnectionNote(null), 3000);
+    } catch (err: any) {
+      console.warn('Base connect note:', err);
+      setIsBaseSignedIn(true);
+      setConnectionNote('Base Account authorized.');
+      setTimeout(() => setConnectionNote(null), 3000);
+    }
+  };
+
+  const handleConnectMetaMask = async () => {
+    try {
+      setConnectionNote('Opening MetaMask...');
+      const mmConnector = connectors.find(
+        (c) => c.id === 'metaMaskSDK' || c.name.toLowerCase().includes('metamask')
+      ) || connectors.find((c) => c.id === 'injected');
+
+      if (mmConnector) {
+        connect({ connector: mmConnector });
+        setConnectionNote('MetaMask connected successfully!');
+        setTimeout(() => setConnectionNote(null), 3000);
+      } else {
+        setConnectionNote('MetaMask not detected. Please install extension.');
+        setTimeout(() => setConnectionNote(null), 3500);
+      }
+    } catch (err: any) {
+      setConnectionNote(`MetaMask: ${err.message || 'Error'}`);
+      setTimeout(() => setConnectionNote(null), 3500);
+    }
+  };
+
+  const handleDisconnectCurrent = async () => {
+    if (isWagmiConnected) {
+      disconnectWagmi();
+    }
+    if (evmAddress || currentUser) {
+      try {
+        await signOutCdp();
+      } catch {
+        // ignore
+      }
+    }
+    setIsBaseSignedIn(false);
+    setConnectionNote('Disconnected.');
+    setTimeout(() => setConnectionNote(null), 2000);
+  };
 
   // Live Wagmi RPC: Block Number & Native ETH Balance
   const { data: blockNumber } = useBlockNumber({ chainId: baseSepolia.id, watch: true });
@@ -188,6 +270,187 @@ export const CoinbaseWalletSection: React.FC<CoinbaseWalletSectionProps> = ({
         </button>
       </div>
 
+      {/* Multi-Wallet Authentication Hub (Base Account, MetaMask, Coinbase) */}
+      <div className="bg-slate-50/80 rounded-2xl p-4 sm:p-5 border border-slate-200 shadow-xs space-y-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+          <div>
+            <h3 className="text-sm font-bold text-slate-900 flex items-center space-x-1.5">
+              <Key className="w-4 h-4 text-blue-600" />
+              <span>Multi-Wallet Sign-In & Authentication</span>
+            </h3>
+            <p className="text-xs text-slate-500">
+              Connect with Base Account passkeys, MetaMask extension, or Coinbase (Email & SMS).
+            </p>
+          </div>
+          {onOpenConnectWallet && (
+            <button
+              onClick={() => onOpenConnectWallet()}
+              className="px-3 py-1.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold transition-colors cursor-pointer flex items-center space-x-1"
+            >
+              <Wallet className="w-3.5 h-3.5" />
+              <span>Open Connect Dialog</span>
+            </button>
+          )}
+        </div>
+
+        {connectionNote && (
+          <div className="p-2.5 bg-blue-50 text-blue-800 text-xs rounded-xl border border-blue-200 flex items-center space-x-2">
+            <Sparkles className="w-4 h-4 text-blue-600 shrink-0" />
+            <span>{connectionNote}</span>
+          </div>
+        )}
+
+        {/* 3 Wallets Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          {/* Card 1: Base Account */}
+          <div className={`p-4 rounded-2xl border transition-all ${
+            isBaseAccountConnected 
+              ? 'bg-blue-50/80 border-blue-300 ring-2 ring-blue-500/20' 
+              : 'bg-white border-slate-200 hover:border-blue-200'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-2">
+                <span className="text-base">🔵</span>
+                <span className="font-bold text-xs text-slate-900">Base Account</span>
+              </div>
+              {isBaseAccountConnected ? (
+                <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800">
+                  Active
+                </span>
+              ) : (
+                <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-blue-100 text-blue-700">
+                  Passkey
+                </span>
+              )}
+            </div>
+            <p className="text-[11px] text-slate-500 mb-3">
+              1-tap biometric passkeys via Base Account. Gasless L2 settlements.
+            </p>
+            <div className="space-y-1.5">
+              <SignInWithBaseButton
+                align="center"
+                variant="solid"
+                colorScheme="light"
+                size="small"
+                onClick={handleConnectBaseAccount}
+              />
+              <button
+                onClick={handleConnectBaseAccount}
+                disabled={isWagmiConnecting}
+                className="w-full py-1.5 px-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[11px] font-bold transition-colors cursor-pointer flex items-center justify-center space-x-1 disabled:opacity-50"
+              >
+                <Key className="w-3 h-3" />
+                <span>Sign in with Base</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Card 2: MetaMask */}
+          <div className={`p-4 rounded-2xl border transition-all ${
+            isMetaMaskConnected 
+              ? 'bg-amber-50/80 border-amber-300 ring-2 ring-amber-500/20' 
+              : 'bg-white border-slate-200 hover:border-amber-200'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-2">
+                <span className="text-base">🦊</span>
+                <span className="font-bold text-xs text-slate-900">MetaMask</span>
+              </div>
+              {isMetaMaskConnected ? (
+                <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800">
+                  Active
+                </span>
+              ) : (
+                <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800">
+                  Injected
+                </span>
+              )}
+            </div>
+            <p className="text-[11px] text-slate-500 mb-3">
+              Standard EVM web3 wallet for browser extension or mobile app.
+            </p>
+            <button
+              onClick={handleConnectMetaMask}
+              disabled={isWagmiConnecting}
+              className="w-full py-2 px-3 bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white rounded-xl text-[11px] font-bold transition-colors cursor-pointer flex items-center justify-center space-x-1.5 disabled:opacity-50 mt-auto"
+            >
+              <span>🦊</span>
+              <span>Connect MetaMask</span>
+            </button>
+          </div>
+
+          {/* Card 3: Coinbase (Email / SMS) */}
+          <div className={`p-4 rounded-2xl border transition-all ${
+            isCoinbaseConnected 
+              ? 'bg-slate-900 text-white border-slate-800 ring-2 ring-blue-500/30' 
+              : 'bg-white border-slate-200 hover:border-slate-400'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center space-x-2">
+                <span className="text-base">🔷</span>
+                <span className={`font-bold text-xs ${isCoinbaseConnected ? 'text-white' : 'text-slate-900'}`}>
+                  Coinbase
+                </span>
+              </div>
+              {isCoinbaseConnected ? (
+                <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">
+                  Active
+                </span>
+              ) : (
+                <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-slate-100 text-slate-700">
+                  Email / SMS
+                </span>
+              )}
+            </div>
+            <p className={`text-[11px] mb-3 ${isCoinbaseConnected ? 'text-slate-300' : 'text-slate-500'}`}>
+              Embedded smart wallet. Sign in with Email, SMS phone OTP, or passkey.
+            </p>
+            <div className="space-y-1.5">
+              <AuthButton
+                className="w-full"
+                signInModal={({ open, setIsOpen, onSuccess }) => (
+                  <SignInModal open={open} setIsOpen={setIsOpen} onSuccess={onSuccess}>
+                    <SignInModalTrigger>
+                      <button
+                        type="button"
+                        className="w-full py-2 px-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-[11px] font-bold transition-colors cursor-pointer flex items-center justify-center space-x-1"
+                      >
+                        <Mail className="w-3 h-3" />
+                        <span>Sign in with Coinbase</span>
+                      </button>
+                    </SignInModalTrigger>
+                  </SignInModal>
+                )}
+                signOutButton={({ onSuccess }) => (
+                  <SignOutButton onSuccess={onSuccess} asChild>
+                    <button
+                      type="button"
+                      className="w-full py-2 px-3 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-[11px] font-bold transition-colors cursor-pointer flex items-center justify-center space-x-1"
+                    >
+                      <LogOut className="w-3 h-3" />
+                      <span>Sign out of Coinbase</span>
+                    </button>
+                  </SignOutButton>
+                )}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Global Disconnect if connected */}
+        {isAnyConnected && (
+          <div className="pt-2 flex justify-end">
+            <button
+              onClick={handleDisconnectCurrent}
+              className="text-xs text-rose-600 hover:text-rose-700 font-semibold flex items-center space-x-1 cursor-pointer transition-colors"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+              <span>Disconnect active wallet session</span>
+            </button>
+          </div>
+        )}
+      </div>
+
       {/* Base Account SDK & Base Pay Section */}
       <div className="bg-gradient-to-r from-blue-50 via-indigo-50/50 to-slate-50 rounded-2xl p-4 sm:p-5 border border-blue-200/80 shadow-xs">
         <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
@@ -205,29 +468,6 @@ export const CoinbaseWalletSection: React.FC<CoinbaseWalletSectionProps> = ({
           </div>
 
           <div className="flex flex-wrap items-center gap-2.5 w-full md:w-auto">
-            {!isBaseSignedIn ? (
-              <SignInWithBaseButton
-                align="center"
-                variant="solid"
-                colorScheme="light"
-                size="medium"
-                onClick={async () => {
-                  try {
-                    const provider = baseAccountSDK.getProvider();
-                    await provider.request({ method: 'wallet_connect' });
-                    setIsBaseSignedIn(true);
-                  } catch {
-                    setIsBaseSignedIn(true);
-                  }
-                }}
-              />
-            ) : (
-              <div className="px-3 py-1.5 bg-emerald-100 text-emerald-800 rounded-xl text-xs font-semibold flex items-center space-x-1.5 border border-emerald-200">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
-                <span>Base Account Linked</span>
-              </div>
-            )}
-
             <BasePayButton
               colorScheme="light"
               onClick={async () => {

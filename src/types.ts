@@ -1,5 +1,7 @@
 export type TabType = 'dashboard' | 'shares' | 'trading' | 'startupListing' | 'invoiceX' | 'debtBridge' | 'zig' | 'whatsapp' | 'aiAdvisor' | 'social' | 'profile';
 
+export type CurrencyMode = 'USD' | 'ZIG';
+
 export interface TokenAsset {
   symbol: string;
   name: string;

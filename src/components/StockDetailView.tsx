@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { StockPriceHistoryChart } from './StockPriceHistoryChart';
 import { generateStockPriceHistory } from '../data/mockData';
+import { useCurrency } from '../context/CurrencyContext';
 
 interface StockDetailViewProps {
   stock: SMEStock;
@@ -32,6 +33,7 @@ export const StockDetailView: React.FC<StockDetailViewProps> = ({
   onBack,
   onBuyShares
 }) => {
+  const { currencyMode, formatStockPrice, formatAmount, oracleRate } = useCurrency();
   const [investUSD, setInvestUSD] = useState<number>(25);
   const [activeTimeframe, setActiveTimeframe] = useState<'1D' | '7D' | '1M' | '1Y' | 'ALL'>('7D');
   const [successNotice, setSuccessNotice] = useState<string | null>(null);
@@ -138,10 +140,10 @@ export const StockDetailView: React.FC<StockDetailViewProps> = ({
               Current Share Price
             </div>
             <div className="text-3xl font-extrabold text-slate-900 tracking-tight">
-              ${stock.priceUSD >= 1 ? stock.priceUSD.toFixed(2) : stock.priceUSD.toFixed(3)}
+              {formatStockPrice(stock.priceUSD).primary}
             </div>
             <div className="text-xs font-semibold text-slate-500 mt-0.5">
-              ZIG {stock.priceZIG ? stock.priceZIG.toFixed(2) : (stock.priceUSD * 26).toFixed(2)}
+              {formatStockPrice(stock.priceUSD).secondary}
             </div>
             <div className="flex items-center lg:justify-end space-x-2 mt-2">
               <span

@@ -158,6 +158,45 @@ export const ApiExplorerModal: React.FC<ApiExplorerModalProps> = ({ isOpen, onCl
       path: '/api/market-news',
       description: 'Fetch grounded ZSE financial headlines from Gemini and Google Search',
       action: () => ApiService.getMarketNews()
+    },
+
+    // MongoDB Database
+    {
+      category: 'MongoDB Database',
+      method: 'GET',
+      path: '/api/mongodb/status',
+      description: 'Check MongoDB connection, URI status, and live collection document counts',
+      action: () => ApiService.getMongoStatus()
+    },
+    {
+      category: 'MongoDB Database',
+      method: 'POST',
+      path: '/api/mongodb/sync',
+      description: 'Trigger full synchronization between in-memory cache and MongoDB collections',
+      action: () => ApiService.syncMongoDatabase()
+    },
+
+    // Base Pay & Account SDK
+    {
+      category: 'Base Pay & Account SDK',
+      method: 'GET',
+      path: '/api/base-pay/history',
+      description: 'Fetch Base Account SDK gasless checkout payment history from MongoDB',
+      action: () => ApiService.getBasePaymentHistory(10)
+    },
+    {
+      category: 'Base Pay & Account SDK',
+      method: 'POST',
+      path: '/api/base-pay/record',
+      description: 'Record a Base Pay 1-tap passkey payment into MongoDB',
+      action: () => ApiService.recordBasePayment({
+        id: `pay-${Date.now()}`,
+        amountUSD: 50.00,
+        recipient: '0x3214F9aB6974Ea80504B6798fF7C93b5E2f70354',
+        purpose: 'Test Base Pay Factoring Settlement',
+        status: 'CONFIRMED',
+        testnet: true
+      })
     }
   ];
 

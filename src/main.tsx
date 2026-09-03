@@ -4,6 +4,7 @@ import { CDPReactProvider } from '@coinbase/cdp-react';
 import { WagmiProvider } from 'wagmi';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { wagmiConfig } from './config/wagmi.ts';
+import { CurrencyProvider } from './context/CurrencyContext.tsx';
 import App from './App.tsx';
 import './index.css';
 
@@ -28,16 +29,20 @@ createRoot(document.getElementById('root')!).render(
         <CDPReactProvider
           config={{
             projectId: cdpProjectId,
+            authMethods: ["email", "sms"],
             ethereum: {
               createOnLogin: "eoa"
             },
             solana: {
               createOnLogin: true
             },
-            appName: "ZEEX Onchain"
+            appName: "ZEEX Onchain",
+            appLogoUrl: "https://base.org/logo.png"
           }}
         >
-          <App />
+          <CurrencyProvider>
+            <App />
+          </CurrencyProvider>
         </CDPReactProvider>
       </QueryClientProvider>
     </WagmiProvider>

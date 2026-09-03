@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { SMEStock, TabType } from '../types';
+import { useCurrency } from '../context/CurrencyContext';
 
 interface MarketMarqueeTickerProps {
   stocks: SMEStock[];
@@ -9,6 +10,7 @@ interface MarketMarqueeTickerProps {
 
 export const MarketMarqueeTicker: React.FC<MarketMarqueeTickerProps> = ({ stocks, setActiveTab, onSelectStock }) => {
   const [isPaused, setIsPaused] = useState(false);
+  const { formatStockPrice } = useCurrency();
 
   // Prepare categorized stream of all stocks
   const marketCapSorted = [...stocks].sort((a, b) => b.marketCap - a.marketCap);
@@ -47,7 +49,7 @@ export const MarketMarqueeTicker: React.FC<MarketMarqueeTickerProps> = ({ stocks
                 <span className={`text-[7px] font-bold px-1 py-0 rounded border ${item.badgeColor}`}>
                   {item.categoryTag}
                 </span>
-                <span className="text-[10px] text-slate-300 font-medium">${item.priceUSD.toFixed(2)}</span>
+                <span className="text-[10px] text-slate-300 font-medium">{formatStockPrice(item.priceUSD).primary}</span>
                 <span className={`text-[9px] font-bold px-1 py-0 rounded ${
                   item.change24h >= 0 ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'
                 }`}>
