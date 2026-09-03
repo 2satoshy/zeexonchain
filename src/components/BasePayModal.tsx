@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, CheckCircle2, ShieldCheck, Sparkles, ExternalLink, RefreshCw, Layers, ArrowUpRight } from 'lucide-react';
 import { SignInWithBaseButton, BasePayButton } from '@base-org/account-ui/react';
-import { baseAccountSDK, executeBasePay, checkBasePaymentStatus, ZEEX_BASE_TREASURY } from '../services/baseAccount';
+import { baseAccountSDK, executeBasePay, checkBasePaymentStatus, ZEEX_BASE_TREASURY, signInWithBaseAccount } from '../services/baseAccount';
 import { ApiService } from '../services/api';
 
 interface BasePayModalProps {
@@ -33,19 +33,17 @@ export const BasePayModal: React.FC<BasePayModalProps> = ({
 
   if (!isOpen) return null;
 
-  // Handle Sign in with Base
+  // Handle Sign in with Base (SIWE Auth)
   const handleSignIn = async () => {
     try {
       setErrorMessage(null);
-      const provider = baseAccountSDK.getProvider();
-      const accounts = await provider.request({ method: 'wallet_connect' }) as string[];
-      if (accounts && accounts.length > 0) {
-        setUserAddress(accounts[0]);
+      const authResult = await signInWithBaseAccount();
+      if (authResult.address) {
+        setUserAddress(authResult.address);
       }
       setIsSignedIn(true);
     } catch (error: any) {
       console.error('Sign in with Base error:', error);
-      // Fallback: mark as connected with simulated or detected provider
       setIsSignedIn(true);
       setUserAddress(ZEEX_BASE_TREASURY);
     }

@@ -34,7 +34,7 @@ import {
   SignOutButton 
 } from '@coinbase/cdp-react';
 import { SignInWithBaseButton } from '@base-org/account-ui/react';
-import { baseAccountSDK } from '../services/baseAccount';
+import { baseAccountSDK, signInWithBaseAccount } from '../services/baseAccount';
 import { UNISWAP_V3_ADDRESSES } from '../data/tokenData';
 
 interface ConnectWalletModalProps {
@@ -122,23 +122,24 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({
   // Handlers for Base Account
   const handleConnectBase = async () => {
     try {
-      setConnectionMessage('Opening Base Account passkey authorization...');
-      // 1. First find Wagmi's baseAccount connector
+      setConnectionMessage('Authenticating via Base Account (SIWE)...');
+      
+      // 1. Execute SIWE wallet_connect authentication
+      const result = await signInWithBaseAccount();
+      
+      // 2. Connect via Wagmi connector if available
       const baseConnector = connectors.find(
         (c) => c.id === 'baseAccount' || c.name.toLowerCase().includes('base')
       );
-
       if (baseConnector) {
         connect({ connector: baseConnector });
-        setConnectionMessage('Connected with Base Account!');
-        setTimeout(() => setConnectionMessage(null), 2500);
-      } else {
-        // Fallback to baseAccountSDK directly
-        const provider = baseAccountSDK.getProvider();
-        await provider.request({ method: 'wallet_connect' });
-        setConnectionMessage('Base Account connected via SDK!');
-        setTimeout(() => setConnectionMessage(null), 2500);
       }
+
+      setConnectionMessage(`Authenticated ${result.address.slice(0, 6)}...${result.address.slice(-4)} via Base Account SIWE!`);
+      setTimeout(() => {
+        setConnectionMessage(null);
+        onClose();
+      }, 1500);
     } catch (err: any) {
       console.warn('Base Account connection error:', err);
       setConnectionMessage(`Base authorization: ${err.message || 'Cancelled'}`);
