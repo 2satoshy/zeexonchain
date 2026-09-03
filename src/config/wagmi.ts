@@ -1,6 +1,12 @@
 import { http, createConfig } from 'wagmi';
 import { baseSepolia, base } from 'wagmi/chains';
 import { baseAccount, metaMask, coinbaseWallet, injected } from 'wagmi/connectors';
+import { Attribution } from 'ox/erc8021';
+
+// Base Builder Code — registered on base.dev for onchain attribution & analytics
+const DATA_SUFFIX = Attribution.toDataSuffix({
+  codes: ['bc_f42ztdul'],
+});
 
 export const wagmiConfig = createConfig({
   chains: [baseSepolia, base],
@@ -22,6 +28,7 @@ export const wagmiConfig = createConfig({
     [baseSepolia.id]: http('https://sepolia.base.org'),
     [base.id]: http('https://mainnet.base.org'),
   },
+  dataSuffix: DATA_SUFFIX,
 });
 
 export const ERC20_ABI = [
