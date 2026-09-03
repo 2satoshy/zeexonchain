@@ -44,8 +44,39 @@ export async function executeBasePay(params: {
 /**
  * Check payment status for a given payment ID
  */
-export async function checkBasePaymentStatus(paymentId: string): Promise<{ status: string }> {
-  return await getPaymentStatus({ id: paymentId });
+export async function checkBasePaymentStatus(paymentId: string, testnet: boolean = true): Promise<{ status: string }> {
+  return await getPaymentStatus({ id: paymentId, testnet });
+}
+
+/**
+ * Verify payment on server side and fulfill user order / account deposit
+ * Implements Replay Attack & Impersonation Attack Prevention as per Base Pay docs.
+ */
+export async function verifyAndFulfillBasePayment(params: {
+  txId: string;
+  payerAddress?: string;
+  expectedAmountUSD?: number;
+  orderId?: string;
+  purpose?: string;
+  testnet?: boolean;
+}): Promise<any> {
+  const res = await fetch('/api/base-pay/verify-and-fulfill', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      txId: params.txId,
+      payerAddress: params.payerAddress,
+      expectedAmountUSD: params.expectedAmountUSD,
+      orderId: params.orderId || `ORD-${Date.now()}`,
+      purpose: params.purpose,
+      testnet: params.testnet !== undefined ? params.testnet : true
+    })
+  });
+  if (!res.ok) {
+    const errorData = await res.json().catch(() => ({ error: res.statusText }));
+    throw new Error(errorData.error || `Server payment verification failed (${res.status})`);
+  }
+  return await res.json();
 }
 
 export interface BaseAuthResult {
