@@ -76,7 +76,7 @@ app.post("/api/ai-advisor", async (req, res) => {
     }
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.6-flash',
+      model: 'gemini-2.5-flash',
       contents: `You are the chief AI financial advisor for ZEEX Onchain, the SECZim-licensed digital SME exchange operating inside ZSE Holdings on Base. 
       Context of user portfolio: ${JSON.stringify(portfolioContext || {})}
       User query: ${prompt}
