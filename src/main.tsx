@@ -1,4 +1,4 @@
-import { StrictMode } from 'react';
+import { Fragment } from 'react';
 import { createRoot } from 'react-dom/client';
 import { CDPReactProvider } from '@coinbase/cdp-react';
 import { WagmiProvider } from 'wagmi';
@@ -17,36 +17,39 @@ const queryClient = new QueryClient({
   },
 });
 
-const cdpProjectId =
-  (typeof process !== 'undefined' && process.env?.CDP_PROJECT_ID) ||
-  ((import.meta as any).env?.VITE_CDP_PROJECT_ID) ||
-  'zeex-cdp-project-id';
+const cdpProjectId = import.meta.env.VITE_CDP_PROJECT_ID || '';
 
 createRoot(document.getElementById('root')!).render(
-  <StrictMode>
+  <Fragment>
     <WagmiProvider config={wagmiConfig}>
       <QueryClientProvider client={queryClient}>
-        <CDPReactProvider
-          config={{
-            projectId: cdpProjectId,
-            authMethods: ["email", "sms"],
-            ethereum: {
-              createOnLogin: "eoa"
-            },
-            solana: {
-              createOnLogin: true
-            },
-            appName: "ZEEX Onchain",
-            appLogoUrl: "https://base.org/logo.png"
-          }}
-        >
+        {cdpProjectId ? (
+          <CDPReactProvider
+            config={{
+              projectId: cdpProjectId,
+              authMethods: ["email", "sms"],
+              ethereum: {
+                createOnLogin: "eoa"
+              },
+              solana: {
+                createOnLogin: true
+              },
+              appName: "ZEEX Onchain",
+              appLogoUrl: "https://base.org/logo.png"
+            }}
+          >
+            <CurrencyProvider>
+              <App />
+            </CurrencyProvider>
+          </CDPReactProvider>
+        ) : (
           <CurrencyProvider>
             <App />
           </CurrencyProvider>
-        </CDPReactProvider>
+        )}
       </QueryClientProvider>
     </WagmiProvider>
-  </StrictMode>,
+  </Fragment>,
 );
 
 

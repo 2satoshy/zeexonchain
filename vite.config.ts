@@ -9,16 +9,24 @@ export default defineConfig(() => {
     resolve: {
       alias: {
         '@': path.resolve(__dirname, '.'),
+        // Polyfill Node's buffer module for browser-targeting wallet/CDP SDKs
+        buffer: 'buffer',
       },
     },
     define: {
-      'process.env.CDP_PROJECT_ID': JSON.stringify(process.env.CDP_PROJECT_ID || process.env.VITE_CDP_PROJECT_ID || ''),
+      // Expose env vars needed by server-side or legacy code referencing process.env
       'process.env.BASE_PAYMASTER_MAINNET': JSON.stringify(process.env.BASE_PAYMASTER_MAINNET || ''),
       'process.env.BASE_PAYMASTER_SEPOLIA': JSON.stringify(process.env.BASE_PAYMASTER_SEPOLIA || ''),
+      // Required by 'buffer' polyfill
+      global: 'globalThis',
+    },
+    optimizeDeps: {
+      // Pre-bundle buffer so Vite doesn't externalize it
+      include: ['buffer'],
     },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
-      // Do not modifyâfile watching is disabled to prevent flickering during agent edits.
+      // Do not modify — file watching is disabled to prevent flickering during agent edits.
       hmr: process.env.DISABLE_HMR !== 'true',
       // Disable file watching when DISABLE_HMR is true to save CPU during agent edits.
       watch: process.env.DISABLE_HMR === 'true' ? null : {},

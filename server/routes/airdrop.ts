@@ -31,12 +31,12 @@ router.post('/claim', async (req: Request, res: Response) => {
 });
 
 /**
- * GET /api/airdrop/status/:address
- * Checks if a specific wallet address has claimed the 100 stock airdrop
+ * GET /api/airdrop/status or /api/airdrop/status/:address
+ * Checks if a specific wallet address has claimed the stock & ZIG airdrop
  */
-router.get('/status/:address', async (req: Request, res: Response) => {
+router.get(['/status', '/status/:address'], async (req: Request, res: Response) => {
   try {
-    const address = req.params.address;
+    const address = (req.params.address || req.query.address) as string;
     if (!address) {
       return res.status(400).json({ success: false, error: 'Missing address parameter' });
     }
