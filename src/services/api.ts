@@ -1,4 +1,4 @@
-import { SMEStock, InvoiceItem, DebtBridgeLoan, Transaction, TokenAsset, SocialPost, TradeOrder } from '../types';
+import { SMEStock, InvoiceItem, DebtBridgeLoan, Transaction, TokenAsset, SocialPost, TradeOrder, UserProfile, UserPortfolio, UserActivityLog } from '../types';
 
 const BASE_URL = '/api';
 
@@ -27,6 +27,27 @@ export const ApiService = {
 
   async getSecZimStatus() {
     return fetchJson<{ success: boolean; data: any }>('/seczim/status');
+  },
+
+  // User Auth, Profiles & Activity Logs
+  async getUserProfile(address: string) {
+    return fetchJson<{ success: boolean; data: { user: UserProfile; portfolio: UserPortfolio; recentActivity: UserActivityLog[] } }>(`/auth/me?address=${encodeURIComponent(address)}`);
+  },
+
+  async getAllUsers() {
+    return fetchJson<{ success: boolean; count: number; data: UserProfile[] }>('/auth/users');
+  },
+
+  async getUserActivity(address?: string, limit = 50) {
+    const query = address ? `?address=${encodeURIComponent(address)}&limit=${limit}` : `?limit=${limit}`;
+    return fetchJson<{ success: boolean; count: number; data: UserActivityLog[] }>(`/auth/activity${query}`);
+  },
+
+  async logUserActivity(walletAddress: string, action: UserActivityLog['action'], details?: Record<string, any>) {
+    return fetchJson<{ success: boolean; data: UserActivityLog }>('/auth/activity', {
+      method: 'POST',
+      body: JSON.stringify({ walletAddress, action, details }),
+    });
   },
 
   async getOracleRates() {

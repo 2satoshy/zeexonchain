@@ -332,3 +332,53 @@ export interface IndexedTransaction {
     totalRedemptionPayoutUSD: number;
   };
 }
+
+export interface UserProfile {
+  id: string;
+  walletAddress: string;
+  authProvider: 'BASE_ACCOUNT' | 'METAMASK' | 'COINBASE_CDP' | 'INJECTED' | 'EMAIL' | 'SMS';
+  email?: string;
+  phoneNumber?: string;
+  role?: 'RETAIL' | 'INSTITUTIONAL' | 'ISSUER';
+  createdAt: string;
+  lastLoginAt: string;
+  ip?: string;
+  userAgent?: string;
+}
+
+export interface UserPortfolio {
+  usdBalance: number;
+  zigBalance: number;
+  totalNetWorthUSD: number;
+  unclaimedDividendsUSD: number;
+  holdings: Array<{
+    stockId: string;
+    ticker: string;
+    name: string;
+    units: number;
+    avgPriceUSD: number;
+    currentValueUSD: number;
+    pnlUSD: number;
+    pnlPercent: number;
+  }>;
+}
+
+export interface UserSession {
+  sessionId: string;
+  walletAddress: string;
+  token: string;
+  createdAt: string;
+  expiresAt: string;
+  isValid: boolean;
+}
+
+export interface UserActivityLog {
+  id: string;
+  walletAddress: string;
+  action: 'SIGN_IN' | 'SIGN_OUT' | 'DEPOSIT' | 'BUY_SHARES' | 'EXECUTE_SWAP' | 'FUND_INVOICE' | 'PLACE_ORDER' | 'TOKENIZE_ASSET' | 'AI_ADVISOR' | 'BASE_PAY';
+  details?: Record<string, any>;
+  timestamp: string;
+  ip?: string;
+  userAgent?: string;
+}
+

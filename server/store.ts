@@ -1,4 +1,4 @@
-import { SMEStock, InvoiceItem, DebtBridgeLoan, Transaction, TokenAsset, SocialPost, TradeOrder, StartupListingApplication } from '../src/types';
+import { SMEStock, InvoiceItem, DebtBridgeLoan, Transaction, TokenAsset, SocialPost, TradeOrder, StartupListingApplication, UserProfile, UserSession, UserActivityLog } from '../src/types';
 import { INITIAL_STOCKS, INITIAL_INVOICES, INITIAL_LOANS, INITIAL_TRANSACTIONS, INITIAL_SOCIAL_POSTS, generateStockPriceHistory } from '../src/data/mockData';
 import { INITIAL_TOKENS } from '../src/data/tokenData';
 import { getMongoCollection, getDatabase } from './db/mongodb';
@@ -77,6 +77,10 @@ class AppStore {
   ];
   private basePayments: BasePaymentRecord[] = [];
   private startupApplications: StartupListingApplication[] = [];
+  private users: UserProfile[] = [];
+  private sessions: UserSession[] = [];
+  private activityLogs: UserActivityLog[] = [];
+  private userPortfoliosMap: Map<string, UserPortfolio> = new Map();
 
   private userPortfolio: UserPortfolio = {
     usdBalance: 1420.50,
@@ -209,7 +213,17 @@ class AppStore {
         this.tradeOrders = mongoOrders.map(({ _id, ...rest }) => rest as unknown as TradeOrder);
       }
 
-      // 8. User Portfolio
+      // 8. Users
+      const usersCol = db.collection('users');
+      const mongoUsers = await usersCol.find().toArray();
+      this.users = mongoUsers.map(({ _id, ...rest }) => rest as unknown as UserProfile);
+
+      // 9. Activity Logs
+      const logsCol = db.collection('user_activity_logs');
+      const mongoLogs = await logsCol.find().sort({ $natural: -1 }).limit(200).toArray();
+      this.activityLogs = mongoLogs.map(({ _id, ...rest }) => rest as unknown as UserActivityLog);
+
+      // 10. User Portfolio
       const portfolioCol = db.collection('user_portfolio');
       const portfolioDoc = await portfolioCol.findOne({ id: 'primary_portfolio' });
       if (!portfolioDoc) {
@@ -963,10 +977,111 @@ class AppStore {
 
     pay.status = status;
     pay.updatedAt = new Date().toISOString();
-    if (txHash) pay.txHash = txHash;
-
     await this.persistMongoDoc('base_payments', { id }, pay);
     return pay;
+  }
+
+  // --- User Signup & Profile Persistence (Option 1) ---
+  public async upsertUser(userData: Partial<UserProfile> & { walletAddress: string }): Promise<UserProfile> {
+    const normAddress = userData.walletAddress.toLowerCase();
+    const existingIndex = this.users.findIndex(u => u.walletAddress.toLowerCase() === normAddress);
+    const now = new Date().toISOString();
+
+    let user: UserProfile;
+    if (existingIndex >= 0) {
+      user = {
+        ...this.users[existingIndex],
+        ...userData,
+        lastLoginAt: now,
+      };
+      this.users[existingIndex] = user;
+    } else {
+      user = {
+        id: `user-${normAddress.slice(0, 8)}`,
+        walletAddress: normAddress,
+        authProvider: userData.authProvider || 'BASE_ACCOUNT',
+        email: userData.email,
+        phoneNumber: userData.phoneNumber,
+        role: userData.role || 'RETAIL',
+        createdAt: now,
+        lastLoginAt: now,
+        ip: userData.ip,
+        userAgent: userData.userAgent,
+      };
+      this.users.push(user);
+    }
+
+    await this.persistMongoDoc('users', { walletAddress: normAddress }, user);
+    return user;
+  }
+
+  public async getUserByAddress(walletAddress: string): Promise<UserProfile | undefined> {
+    const norm = walletAddress.toLowerCase();
+    let user = this.users.find(u => u.walletAddress.toLowerCase() === norm);
+    if (!user) {
+      const db = await getDatabase();
+      if (db) {
+        const found = await db.collection('users').findOne({ walletAddress: norm });
+        if (found) {
+          const { _id, ...rest } = found;
+          user = rest as unknown as UserProfile;
+          this.users.push(user);
+        }
+      }
+    }
+    return user;
+  }
+
+  public getUsers(limit = 100): UserProfile[] {
+    return this.users.slice(0, limit);
+  }
+
+  // --- Session & User Activity Audit Logging (Option 2) ---
+  public async logActivity(activity: Partial<UserActivityLog> & { action: UserActivityLog['action'] }): Promise<UserActivityLog> {
+    const log: UserActivityLog = {
+      id: `act-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      walletAddress: (activity.walletAddress || '0xAnonymous').toLowerCase(),
+      action: activity.action,
+      details: activity.details || {},
+      timestamp: new Date().toISOString(),
+      ip: activity.ip,
+      userAgent: activity.userAgent,
+    };
+
+    this.activityLogs.unshift(log);
+    if (this.activityLogs.length > 500) {
+      this.activityLogs = this.activityLogs.slice(0, 500);
+    }
+
+    await this.insertMongoDoc('user_activity_logs', log);
+    return log;
+  }
+
+  public getActivityLogs(walletAddress?: string, limit = 50): UserActivityLog[] {
+    if (walletAddress) {
+      const norm = walletAddress.toLowerCase();
+      return this.activityLogs.filter(l => l.walletAddress.toLowerCase() === norm).slice(0, limit);
+    }
+    return this.activityLogs.slice(0, limit);
+  }
+
+  // --- Per-User Portfolio Isolation (Option 3) ---
+  public getUserPortfolioForAddress(walletAddress?: string): UserPortfolio {
+    if (!walletAddress) return this.userPortfolio;
+
+    const norm = walletAddress.toLowerCase();
+    if (!this.userPortfoliosMap.has(norm)) {
+      // Initialize isolated portfolio for new user address
+      const newPortfolio: UserPortfolio = {
+        usdBalance: 500.00,
+        zigBalance: 13000.00,
+        totalNetWorthUSD: 1000.00,
+        unclaimedDividendsUSD: 0,
+        holdings: []
+      };
+      this.userPortfoliosMap.set(norm, newPortfolio);
+    }
+    return this.userPortfoliosMap.get(norm)!;
   }
 }
 

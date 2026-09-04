@@ -156,7 +156,11 @@ export async function initMongoDatabase(): Promise<boolean> {
       await db.collection('trade_orders').createIndex({ id: 1 }, { unique: true });
       await db.collection('social_posts').createIndex({ id: 1 }, { unique: true });
       await db.collection('base_payments').createIndex({ id: 1 }, { unique: true });
-      console.log('[MongoDB] Base L2 collections and indexes initialized.');
+      await db.collection('users').createIndex({ walletAddress: 1 }, { unique: true });
+      await db.collection('sessions').createIndex({ token: 1 }, { unique: true });
+      await db.collection('user_activity_logs').createIndex({ walletAddress: 1 });
+      await db.collection('user_portfolios').createIndex({ walletAddress: 1 }, { unique: true });
+      console.log('[MongoDB] Base L2 collections, users, sessions, and activity indexes initialized.');
     } catch (indexErr) {
       console.warn('[MongoDB] Index creation note:', indexErr);
     }
