@@ -1,7 +1,7 @@
 import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import {defineConfig} from 'vite';
+import { defineConfig } from 'vite';
 
 export default defineConfig(() => {
   return {
@@ -12,6 +12,13 @@ export default defineConfig(() => {
         // Polyfill Node's buffer module for browser-targeting wallet/CDP SDKs
         buffer: 'buffer',
       },
+      dedupe: [
+        '@coinbase/cdp-hooks',
+        '@coinbase/cdp-react',
+        '@coinbase/cdp-core',
+        'react',
+        'react-dom',
+      ],
     },
     define: {
       // Expose env vars needed by server-side or legacy code referencing process.env
@@ -21,8 +28,13 @@ export default defineConfig(() => {
       global: 'globalThis',
     },
     optimizeDeps: {
-      // Pre-bundle buffer so Vite doesn't externalize it
-      include: ['buffer'],
+      // Pre-bundle buffer & CDP packages together so Vite doesn't duplicate context modules
+      include: [
+        'buffer',
+        '@coinbase/cdp-hooks',
+        '@coinbase/cdp-react',
+        '@coinbase/cdp-core',
+      ],
     },
     server: {
       // HMR is disabled in AI Studio via DISABLE_HMR env var.
