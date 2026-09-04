@@ -15,7 +15,10 @@ import basePayRouter from "./server/routes/basePay";
 import authRouter from "./server/routes/auth";
 import rwaRouter from "./server/routes/rwa";
 import airdropRouter from "./server/routes/airdrop";
+import aiAdvisorRouter from "./server/routes/aiAdvisor";
+import zigRouter from "./server/routes/zig";
 import { initTokenDeployment } from "./server/onchain/deploy";
+import { initZigStablecoin } from "./server/onchain/zigStablecoin";
 import { initMongoDatabase, getMongoStatus } from "./server/db/mongodb";
 import { store } from "./server/store";
 
@@ -78,6 +81,7 @@ app.get("/api/health", async (req, res) => {
 });
 
 // Mount modular sub-routers
+app.use("/api/zig", zigRouter);
 app.use("/api/airdrop", airdropRouter);
 app.use("/api/rwa", rwaRouter);
 app.use("/api/auth", authRouter);
@@ -97,34 +101,8 @@ app.use("/api/transactions", (req, res) => {
 app.use("/api/social", socialRouter);
 app.use("/api", systemRouter);
 
-// AI Advisor endpoint for ZEEX Onchain insights
-app.post("/api/ai-advisor", async (req, res) => {
-  try {
-    const { prompt, portfolioContext } = req.body;
-    const ai = getGeminiClient();
-
-    if (!ai) {
-      // Fallback response if API key is not configured
-      return res.json({
-        reply: "ZEEX AI Advisor (Offline Mode): Based on current SECZim regulations and ZSE Debtbridge trust metrics, Takura Agro (TKRA.zx) and Nyanga Solar (NYNG.zx) exhibit robust USD-hedged cash flows with >9% dividend yields. Consider fractional dollar allocations starting from $1 to diversify across sectors."
-      });
-    }
-
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
-      contents: `You are the chief AI financial advisor for ZEEX Onchain, the SECZim-licensed digital SME exchange operating inside ZSE Holdings on Base. 
-      Context of user portfolio: ${JSON.stringify(portfolioContext || {})}
-      User query: ${prompt}
-      
-      Provide expert, professional, concise investment and working capital advice regarding Zimbabwean tokenized SME equities, InvoiceX discounting, $ZIG stablecoin stability, and fractional ownership from $1. Keep the tone sophisticated, bank-grade, and trustworthy.`
-    });
-
-    res.json({ reply: response.text });
-  } catch (error: any) {
-    console.error("AI Advisor error:", error);
-    res.status(500).json({ error: error.message || "Failed to generate AI advice" });
-  }
-});
+// AI Advisor & Autonomous Copilot Broker for ZEEX Onchain insights & trade execution
+app.use("/api/ai-advisor", aiAdvisorRouter);
 
 // WhatsApp Bot command simulation endpoint
 app.post("/api/whatsapp/simulate", async (req, res) => {
@@ -255,6 +233,7 @@ async function startServer() {
         await store.syncWithMongoDB();
       }
       await initTokenDeployment();
+      await initZigStablecoin();
     })
     .catch((err) => {
       console.warn("[MongoDB/Deployment] Startup note:", err.message);

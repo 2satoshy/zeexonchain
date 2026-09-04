@@ -270,10 +270,11 @@ export function useRealtimeOnchainBalances(customTokens: TokenAsset[] = INITIAL_
 
       // ZIG
       if (token.symbol === 'ZIG') {
+        const effectiveZigBal = zigBal > 0 ? zigBal : (token.balance || 0);
         return {
           ...token,
-          balance: zigBal,
-          balanceUSD: zigBal * token.priceUSD,
+          balance: effectiveZigBal,
+          balanceUSD: effectiveZigBal * token.priceUSD,
         };
       }
 

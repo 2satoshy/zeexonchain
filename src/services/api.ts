@@ -1,4 +1,4 @@
-import { SMEStock, InvoiceItem, DebtBridgeLoan, Transaction, TokenAsset, SocialPost, TradeOrder, UserProfile, UserPortfolio, UserActivityLog } from '../types';
+import { SMEStock, InvoiceItem, DebtBridgeLoan, Transaction, TokenAsset, SocialPost, TradeOrder, UserProfile, UserPortfolio, UserActivityLog, AiBrokerActionDetail, AiAdvisorResponse } from '../types';
 
 const BASE_URL = '/api';
 
@@ -295,10 +295,23 @@ export const ApiService = {
   },
 
   // AI & Bot
-  async getAiAdvice(prompt: string, portfolioContext?: any) {
-    return fetchJson<{ reply: string }>('/ai-advisor', {
+  async getAiAdvice(prompt: string, portfolioContext?: any, autoExecute?: boolean, walletAddress?: string) {
+    return fetchJson<AiAdvisorResponse>('/ai-advisor', {
       method: 'POST',
-      body: JSON.stringify({ prompt, portfolioContext }),
+      body: JSON.stringify({ prompt, portfolioContext, autoExecute, walletAddress }),
+    });
+  },
+
+  async executeAiAction(action: AiBrokerActionDetail, walletAddress?: string) {
+    return fetchJson<{
+      success: boolean;
+      message: string;
+      transaction?: Transaction;
+      updatedAction: AiBrokerActionDetail;
+      updatedPortfolio?: any;
+    }>('/ai-advisor/execute', {
+      method: 'POST',
+      body: JSON.stringify({ action, walletAddress }),
     });
   },
 
@@ -369,5 +382,52 @@ export const ApiService = {
       method: 'POST',
       body: JSON.stringify({ id, status, txHash }),
     });
+  },
+
+  // Base B20 $ZIG Stablecoin
+  async getZigTokenDetails() {
+    return fetchJson<{ success: boolean; data: any }>('/zig/token');
+  },
+
+  async mintZigSupply(amount: number, recipientAddress?: string, memo?: string) {
+    return fetchJson<{ success: boolean; message: string; data: any }>('/zig/mint', {
+      method: 'POST',
+      body: JSON.stringify({ amount, recipientAddress, memo }),
+    });
+  },
+
+  async burnZigSupply(amount: number, ownerAddress?: string, memo?: string) {
+    return fetchJson<{ success: boolean; message: string; data: any }>('/zig/burn', {
+      method: 'POST',
+      body: JSON.stringify({ amount, ownerAddress, memo }),
+    });
+  },
+
+  async getZigOperations(limit = 20) {
+    return fetchJson<{ success: boolean; count: number; data: any[] }>(`/zig/operations?limit=${limit}`);
+  },
+
+  // Airdrop Allocation (1,000 $ZIG Stablecoin + 400 SME Stock Tokens)
+  async claimAirdrop(walletAddress: string) {
+    return fetchJson<{
+      success: boolean;
+      alreadyClaimed: boolean;
+      transfers: Array<{ symbol: string; amount: number; txHash?: string; status: string }>;
+      message: string;
+    }>('/airdrop/claim', {
+      method: 'POST',
+      body: JSON.stringify({ walletAddress }),
+    });
+  },
+
+  async getAirdropStatus(walletAddress: string) {
+    return fetchJson<{
+      success: boolean;
+      walletAddress: string;
+      claimed: boolean;
+      claimedAt?: string;
+      transfers?: any[];
+      totalTokensReceived?: number;
+    }>(`/airdrop/status?address=${encodeURIComponent(walletAddress)}`);
   }
 };

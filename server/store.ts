@@ -436,6 +436,338 @@ class AppStore {
     };
   }
 
+  public buyStockWithCurrency(params: {
+    stockIdOrTicker: string;
+    fromCurrency: string;
+    amountUSD?: number;
+    units?: number;
+    currencyAmount?: number;
+    walletAddress?: string;
+  }) {
+    const { stockIdOrTicker, fromCurrency, walletAddress } = params;
+    const cleanTicker = stockIdOrTicker.toLowerCase().replace('.zx', '');
+    const stock = this.stocks.find(s => 
+      s.id.toLowerCase() === stockIdOrTicker.toLowerCase() ||
+      s.ticker.toLowerCase() === stockIdOrTicker.toLowerCase() ||
+      s.ticker.toLowerCase().replace('.zx', '') === cleanTicker ||
+      s.name.toLowerCase().includes(cleanTicker)
+    );
+
+    if (!stock) {
+      throw new Error(`Stock '${stockIdOrTicker}' not found on ZEEX exchange`);
+    }
+
+    const normCurrency = fromCurrency.toUpperCase().replace('$', '').trim();
+    let usdAmount = 0;
+    let units = 0;
+    let currencyDeductAmount = 0;
+
+    if (params.amountUSD && params.amountUSD > 0) {
+      usdAmount = params.amountUSD;
+      units = Math.round((usdAmount / stock.priceUSD) * 10000) / 10000;
+      currencyDeductAmount = normCurrency === 'ZIG' 
+        ? usdAmount * this.oracleRates.usdZig 
+        : (normCurrency === 'ETH' || normCurrency === 'WETH')
+          ? usdAmount / this.oracleRates.ethUSD
+          : usdAmount;
+    } else if (params.units && params.units > 0) {
+      units = params.units;
+      usdAmount = units * stock.priceUSD;
+      currencyDeductAmount = normCurrency === 'ZIG'
+        ? usdAmount * this.oracleRates.usdZig
+        : (normCurrency === 'ETH' || normCurrency === 'WETH')
+          ? usdAmount / this.oracleRates.ethUSD
+          : usdAmount;
+    } else if (params.currencyAmount && params.currencyAmount > 0) {
+      currencyDeductAmount = params.currencyAmount;
+      if (normCurrency === 'ZIG') {
+        usdAmount = currencyDeductAmount / this.oracleRates.usdZig;
+      } else if (normCurrency === 'ETH' || normCurrency === 'WETH') {
+        usdAmount = currencyDeductAmount * this.oracleRates.ethUSD;
+      } else {
+        usdAmount = currencyDeductAmount;
+      }
+      units = Math.round((usdAmount / stock.priceUSD) * 10000) / 10000;
+    } else {
+      throw new Error('Please specify an investment amount or units');
+    }
+
+    // Deduct from currency balance
+    const token = this.tokens.find(t => t.symbol === normCurrency || (normCurrency === 'USD' && t.symbol === 'USDC'));
+    if (token) {
+      token.balance = Math.max(0, token.balance - currencyDeductAmount);
+      token.balanceUSD = token.balance * token.priceUSD;
+      this.persistMongoDoc('tokens', { symbol: token.symbol }, token);
+    }
+
+    if (normCurrency === 'ZIG') {
+      this.userPortfolio.zigBalance = Math.max(0, this.userPortfolio.zigBalance - currencyDeductAmount);
+    } else if (normCurrency === 'USDC' || normCurrency === 'USD') {
+      this.userPortfolio.usdBalance = Math.max(0, this.userPortfolio.usdBalance - usdAmount);
+    }
+
+    // Update stock and portfolio holdings
+    stock.fractionalUnitsAvailable = Math.max(0, stock.fractionalUnitsAvailable - units);
+    stock.txns24h = (stock.txns24h || 120) + 1;
+    stock.tradersCount = (stock.tradersCount || 400) + 1;
+
+    const existingHolding = this.userPortfolio.holdings.find(h => h.stockId === stock.id);
+    if (existingHolding) {
+      const totalUnits = existingHolding.units + units;
+      const totalCost = (existingHolding.units * existingHolding.avgPriceUSD) + usdAmount;
+      existingHolding.units = totalUnits;
+      existingHolding.avgPriceUSD = totalCost / totalUnits;
+      existingHolding.currentValueUSD = totalUnits * stock.priceUSD;
+      existingHolding.pnlUSD = existingHolding.currentValueUSD - totalCost;
+      existingHolding.pnlPercent = (existingHolding.pnlUSD / totalCost) * 100;
+    } else {
+      this.userPortfolio.holdings.push({
+        stockId: stock.id,
+        ticker: stock.ticker,
+        name: stock.name,
+        units: units,
+        avgPriceUSD: stock.priceUSD,
+        currentValueUSD: usdAmount,
+        pnlUSD: 0,
+        pnlPercent: 0
+      });
+    }
+
+    // Per-user isolated portfolio update & audit activity
+    if (walletAddress) {
+      const userPort = this.getUserPortfolioForAddress(walletAddress);
+      if (normCurrency === 'ZIG') {
+        userPort.zigBalance = Math.max(0, (userPort.zigBalance || 0) - currencyDeductAmount);
+      } else if (normCurrency === 'USDC' || normCurrency === 'USD') {
+        userPort.usdBalance = Math.max(0, (userPort.usdBalance || 0) - usdAmount);
+      }
+      const existingUserHolding = userPort.holdings.find(h => h.stockId === stock.id || h.ticker === stock.ticker);
+      if (existingUserHolding) {
+        const totalUnits = existingUserHolding.units + units;
+        const totalCost = (existingUserHolding.units * existingUserHolding.avgPriceUSD) + usdAmount;
+        existingUserHolding.units = totalUnits;
+        existingUserHolding.avgPriceUSD = totalCost / totalUnits;
+        existingUserHolding.currentValueUSD = totalUnits * stock.priceUSD;
+        existingUserHolding.pnlUSD = existingUserHolding.currentValueUSD - totalCost;
+        existingUserHolding.pnlPercent = (existingUserHolding.pnlUSD / totalCost) * 100;
+      } else {
+        userPort.holdings.push({
+          stockId: stock.id,
+          ticker: stock.ticker,
+          name: stock.name,
+          units: units,
+          avgPriceUSD: stock.priceUSD,
+          currentValueUSD: usdAmount,
+          pnlUSD: 0,
+          pnlPercent: 0
+        });
+      }
+      userPort.totalNetWorthUSD = userPort.usdBalance + ((userPort.zigBalance || 0) * this.oracleRates.zigUsd) + userPort.holdings.reduce((sum, h) => sum + h.currentValueUSD, 0);
+      this.persistMongoDoc('user_portfolios', { walletAddress: walletAddress.toLowerCase() }, userPort);
+
+      // Log user activity
+      this.logActivity({
+        walletAddress,
+        action: 'BUY_SHARES',
+        details: {
+          stockTicker: stock.ticker,
+          stockName: stock.name,
+          units,
+          costUSD: usdAmount,
+          currency: normCurrency,
+          currencyDeductAmount,
+          seczimTrust: stock.backingTrust
+        }
+      }).catch(e => console.warn('Activity log notice:', e));
+    }
+
+    const txHash = `0x${Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
+    const tx: Transaction = {
+      id: `tx-ai-buy-${Date.now()}`,
+      type: 'BUY',
+      title: `Bought ${units.toFixed(2)} ${stock.ticker} with ${currencyDeductAmount.toLocaleString(undefined, { maximumFractionDigits: 3 })} ${normCurrency}`,
+      amountUSD: usdAmount,
+      amountZIG: usdAmount * this.oracleRates.usdZig,
+      timestamp: 'Just now',
+      status: 'Completed',
+      reference: `ZEEX-AI-${Math.floor(100000 + Math.random() * 900000)}`,
+      blockNumber: 18496000 + Math.floor(Math.random() * 100),
+      txHash,
+      gasSponsored: true,
+      sender: walletAddress || '0x71C...4b92',
+      receiver: '0xStanbicNomineesEscrow'
+    };
+
+    this.transactions.unshift(tx);
+    this.persistMongoDoc('stocks', { id: stock.id }, stock);
+    this.persistMongoDoc('user_portfolio', { id: 'primary_portfolio' }, this.userPortfolio);
+    this.insertMongoDoc('transactions', tx);
+
+    return {
+      success: true,
+      stock,
+      units,
+      usdAmount,
+      currencyDeductAmount,
+      fromCurrency: normCurrency,
+      transaction: tx
+    };
+  }
+
+  public sellStockForCurrency(params: {
+    stockIdOrTicker: string;
+    units: number;
+    toCurrency?: string;
+    walletAddress?: string;
+  }) {
+    const { stockIdOrTicker, units, toCurrency = 'USDC', walletAddress } = params;
+    const cleanTicker = stockIdOrTicker.toLowerCase().replace('.zx', '');
+    const stock = this.stocks.find(s => 
+      s.id.toLowerCase() === stockIdOrTicker.toLowerCase() ||
+      s.ticker.toLowerCase() === stockIdOrTicker.toLowerCase() ||
+      s.ticker.toLowerCase().replace('.zx', '') === cleanTicker
+    );
+
+    if (!stock) throw new Error(`Stock '${stockIdOrTicker}' not found on ZEEX exchange`);
+
+    const holding = this.userPortfolio.holdings.find(h => h.stockId === stock.id);
+    if (!holding || holding.units < units) {
+      throw new Error(`Insufficient shares. You hold ${holding ? holding.units : 0} units of ${stock.ticker}`);
+    }
+
+    const usdVal = units * stock.priceUSD;
+    const normToCurrency = toCurrency.toUpperCase().replace('$', '').trim();
+    let currencyCredited = usdVal;
+    if (normToCurrency === 'ZIG') {
+      currencyCredited = usdVal * this.oracleRates.usdZig;
+    } else if (normToCurrency === 'ETH' || normToCurrency === 'WETH') {
+      currencyCredited = usdVal / this.oracleRates.ethUSD;
+    }
+
+    holding.units -= units;
+    holding.currentValueUSD = holding.units * stock.priceUSD;
+    if (holding.units <= 0) {
+      this.userPortfolio.holdings = this.userPortfolio.holdings.filter(h => h.stockId !== stock.id);
+    }
+
+    stock.fractionalUnitsAvailable += units;
+
+    const token = this.tokens.find(t => t.symbol === normToCurrency || (normToCurrency === 'USD' && t.symbol === 'USDC'));
+    if (token) {
+      token.balance += currencyCredited;
+      token.balanceUSD = token.balance * token.priceUSD;
+      this.persistMongoDoc('tokens', { symbol: token.symbol }, token);
+    }
+
+    if (normToCurrency === 'ZIG') {
+      this.userPortfolio.zigBalance += currencyCredited;
+    } else if (normToCurrency === 'USDC' || normToCurrency === 'USD') {
+      this.userPortfolio.usdBalance += usdVal;
+    }
+
+    // Per-user isolated portfolio update & audit activity
+    if (walletAddress) {
+      const userPort = this.getUserPortfolioForAddress(walletAddress);
+      const userHolding = userPort.holdings.find(h => h.stockId === stock.id || h.ticker === stock.ticker);
+      if (userHolding) {
+        userHolding.units = Math.max(0, userHolding.units - units);
+        userHolding.currentValueUSD = userHolding.units * stock.priceUSD;
+        if (userHolding.units <= 0) {
+          userPort.holdings = userPort.holdings.filter(h => h.stockId !== stock.id && h.ticker !== stock.ticker);
+        }
+      }
+      if (normToCurrency === 'ZIG') {
+        userPort.zigBalance = (userPort.zigBalance || 0) + currencyCredited;
+      } else if (normToCurrency === 'USDC' || normToCurrency === 'USD') {
+        userPort.usdBalance = (userPort.usdBalance || 0) + usdVal;
+      }
+      userPort.totalNetWorthUSD = userPort.usdBalance + ((userPort.zigBalance || 0) * this.oracleRates.zigUsd) + userPort.holdings.reduce((sum, h) => sum + h.currentValueUSD, 0);
+      this.persistMongoDoc('user_portfolios', { walletAddress: walletAddress.toLowerCase() }, userPort);
+
+      // Log user activity
+      this.logActivity({
+        walletAddress,
+        action: 'BUY_SHARES',
+        details: {
+          action: 'SELL_SHARES',
+          stockTicker: stock.ticker,
+          stockName: stock.name,
+          units,
+          proceedsUSD: usdVal,
+          currency: normToCurrency,
+          currencyCredited
+        }
+      }).catch(e => console.warn('Activity log notice:', e));
+    }
+
+    const txHash = `0x${Array.from({ length: 40 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
+    const tx: Transaction = {
+      id: `tx-ai-sell-${Date.now()}`,
+      type: 'SELL',
+      title: `Sold ${units.toFixed(2)} ${stock.ticker} for ${currencyCredited.toLocaleString(undefined, { maximumFractionDigits: 3 })} ${normToCurrency}`,
+      amountUSD: usdVal,
+      amountZIG: usdVal * this.oracleRates.usdZig,
+      timestamp: 'Just now',
+      status: 'Completed',
+      reference: `ZEEX-SELL-${Math.floor(100000 + Math.random() * 900000)}`,
+      blockNumber: 18496000 + Math.floor(Math.random() * 100),
+      txHash,
+      gasSponsored: true,
+      sender: walletAddress || '0x71C...4b92'
+    };
+
+    this.transactions.unshift(tx);
+    this.persistMongoDoc('stocks', { id: stock.id }, stock);
+    this.persistMongoDoc('user_portfolio', { id: 'primary_portfolio' }, this.userPortfolio);
+    this.insertMongoDoc('transactions', tx);
+
+    return {
+      success: true,
+      stock,
+      units,
+      usdVal,
+      currencyCredited,
+      toCurrency: normToCurrency,
+      transaction: tx
+    };
+  }
+
+  public createPaymentRequest(amount: number, tokenSymbol: string, requester: string, memo?: string) {
+    const reqId = `req-${Date.now()}`;
+    const reference = `ZEEX-REQ-${Math.floor(100000 + Math.random() * 900000)}`;
+    const paymentLink = `https://zeexonchain.zse.zw/pay/${reference}`;
+    const token = this.tokens.find(t => t.symbol === tokenSymbol);
+    const usdVal = amount * (token ? token.priceUSD : (tokenSymbol === 'ZIG' ? 1 / this.oracleRates.usdZig : 1));
+
+    const tx: Transaction = {
+      id: `tx-req-${Date.now()}`,
+      type: 'TRANSFER',
+      title: `Payment Request: ${amount.toLocaleString()} ${tokenSymbol} (${memo || 'ZEEX Settlement'})`,
+      amountUSD: usdVal,
+      amountZIG: usdVal * this.oracleRates.usdZig,
+      timestamp: 'Just now',
+      status: 'Pending',
+      reference,
+      sender: requester,
+      gasSponsored: true
+    };
+    this.transactions.unshift(tx);
+    this.insertMongoDoc('transactions', tx);
+
+    return {
+      success: true,
+      requestId: reqId,
+      reference,
+      amount,
+      tokenSymbol,
+      usdVal,
+      memo: memo || 'ZEEX Onchain Payment Request',
+      paymentLink,
+      status: 'PENDING',
+      transaction: tx
+    };
+  }
+
   public tokenizeStock(params: {
     name: string;
     ticker: string;
@@ -631,6 +963,37 @@ class AppStore {
     this.persistMongoDoc('tokens', { symbol: fromToken.symbol }, fromToken);
     this.persistMongoDoc('tokens', { symbol: toToken.symbol }, toToken);
     this.insertMongoDoc('transactions', tx);
+
+    // Per-user isolated portfolio update & audit activity
+    if (walletAddress) {
+      const userPort = this.getUserPortfolioForAddress(walletAddress);
+      if (fromSymbol === 'ZIG') {
+        userPort.zigBalance = Math.max(0, (userPort.zigBalance || 0) - amountIn);
+      } else if (fromSymbol === 'USDC' || fromSymbol === 'USD') {
+        userPort.usdBalance = Math.max(0, (userPort.usdBalance || 0) - amountIn);
+      }
+      if (toSymbol === 'ZIG') {
+        userPort.zigBalance = (userPort.zigBalance || 0) + quote.amountOutEstimated;
+      } else if (toSymbol === 'USDC' || toSymbol === 'USD') {
+        userPort.usdBalance = (userPort.usdBalance || 0) + quote.amountOutEstimated;
+      }
+      userPort.totalNetWorthUSD = userPort.usdBalance + ((userPort.zigBalance || 0) * this.oracleRates.zigUsd) + userPort.holdings.reduce((sum, h) => sum + h.currentValueUSD, 0);
+      this.persistMongoDoc('user_portfolios', { walletAddress: walletAddress.toLowerCase() }, userPort);
+
+      // Log user activity
+      this.logActivity({
+        walletAddress,
+        action: 'EXECUTE_SWAP',
+        details: {
+          fromSymbol,
+          toSymbol,
+          amountIn,
+          amountOut: quote.amountOutEstimated,
+          txHash,
+          pool: 'Uniswap V3 on Base Sepolia'
+        }
+      }).catch(e => console.warn('Activity log notice:', e));
+    }
 
     return {
       success: true,
@@ -894,6 +1257,31 @@ class AppStore {
     }
     this.persistMongoDoc('user_portfolio', { id: 'primary_portfolio' }, this.userPortfolio);
     this.insertMongoDoc('transactions', tx);
+
+    // Per-user isolated portfolio update & audit activity
+    if (senderAddress) {
+      const userPort = this.getUserPortfolioForAddress(senderAddress);
+      if (tokenSymbol === 'USD' || tokenSymbol === 'USDC') {
+        userPort.usdBalance = Math.max(0, (userPort.usdBalance || 0) - amount);
+      } else if (tokenSymbol === 'ZIG') {
+        userPort.zigBalance = Math.max(0, (userPort.zigBalance || 0) - amount);
+      }
+      userPort.totalNetWorthUSD = userPort.usdBalance + ((userPort.zigBalance || 0) * this.oracleRates.zigUsd) + userPort.holdings.reduce((sum, h) => sum + h.currentValueUSD, 0);
+      this.persistMongoDoc('user_portfolios', { walletAddress: senderAddress.toLowerCase() }, userPort);
+
+      // Log user activity
+      this.logActivity({
+        walletAddress: senderAddress,
+        action: 'BASE_PAY',
+        details: {
+          tokenSymbol,
+          amount,
+          recipient,
+          txHash: tx.txHash,
+          network: 'Base Sepolia L2'
+        }
+      }).catch(e => console.warn('Activity log notice:', e));
+    }
 
     return {
       success: true,
@@ -1163,6 +1551,13 @@ class AppStore {
       portfolio.holdings.push(holding);
     }
     portfolio.totalNetWorthUSD = portfolio.usdBalance + portfolio.holdings.reduce((sum, h) => sum + h.currentValueUSD, 0);
+  }
+
+  public addZigBalanceToUserPortfolio(walletAddress: string, amount: number): void {
+    const norm = walletAddress.toLowerCase();
+    const portfolio = this.getUserPortfolioForAddress(norm);
+    portfolio.zigBalance = (portfolio.zigBalance || 0) + amount;
+    portfolio.totalNetWorthUSD = portfolio.usdBalance + (portfolio.zigBalance * this.oracleRates.zigUsd) + portfolio.holdings.reduce((sum, h) => sum + h.currentValueUSD, 0);
   }
 }
 

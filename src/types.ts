@@ -375,7 +375,7 @@ export interface UserSession {
 export interface UserActivityLog {
   id: string;
   walletAddress: string;
-  action: 'SIGN_IN' | 'SIGN_OUT' | 'DEPOSIT' | 'BUY_SHARES' | 'EXECUTE_SWAP' | 'FUND_INVOICE' | 'PLACE_ORDER' | 'TOKENIZE_ASSET' | 'AI_ADVISOR' | 'BASE_PAY' | 'CLAIM_AIRDROP' | 'STOCK_AIRDROP';
+  action: 'SIGN_IN' | 'SIGN_OUT' | 'DEPOSIT' | 'BUY_SHARES' | 'EXECUTE_SWAP' | 'FUND_INVOICE' | 'PLACE_ORDER' | 'TOKENIZE_ASSET' | 'AI_ADVISOR' | 'BASE_PAY' | 'CLAIM_AIRDROP' | 'STOCK_AIRDROP' | 'MINT' | 'BURN';
   details?: Record<string, any>;
   timestamp: string;
   ip?: string;
@@ -416,6 +416,65 @@ export interface BaseRWAAssetToken {
   distributions: BaseRWADistribution[];
   createdAt: string;
   updatedAt: string;
+}
+
+// --- AI Financial Copilot & Broker Types ---
+export type AiBrokerActionType =
+  | 'BUY_STOCK'
+  | 'SELL_STOCK'
+  | 'SWAP_TOKENS'
+  | 'SEND_FUNDS'
+  | 'REQUEST_FUNDS'
+  | 'REBALANCE_PORTFOLIO'
+  | 'INVEST_INVOICE';
+
+export interface AiBrokerActionDetail {
+  type: AiBrokerActionType;
+  title: string;
+  summary: string;
+  status: 'PROPOSED' | 'EXECUTED' | 'FAILED';
+  sourceCurrency?: string;
+  sourceAmount?: number;
+  targetAsset?: string;
+  targetAmount?: number;
+  targetUnits?: number;
+  pricePerUnit?: number;
+  recipient?: string;
+  invoiceId?: string;
+  expectedYield?: string;
+  estimatedGasUSD?: number;
+  network?: string;
+  txHash?: string;
+  reference?: string;
+  paymentLink?: string;
+  error?: string;
+  rebalanceSteps?: Array<{
+    action: string;
+    description: string;
+    amount: number;
+    currency: string;
+    targetAsset: string;
+    txHash?: string;
+    status?: 'COMPLETED' | 'PENDING';
+  }>;
+}
+
+export interface AiAdvisorResponse {
+  reply: string;
+  intent?: 'ADVISE' | 'TRADE_BUY' | 'TRADE_SELL' | 'TRADE_SWAP' | 'SEND' | 'REQUEST' | 'REBALANCE' | 'INVEST_INVOICE';
+  actionProposal?: AiBrokerActionDetail;
+  suggestedPrompts?: string[];
+  portfolioDiff?: {
+    balanceChanges?: Array<{ symbol: string; change: number; newBalance: number }>;
+    newNetWorthUSD?: number;
+  };
+  executionReceipt?: {
+    txHash: string;
+    network: string;
+    timestamp: string;
+    blockNumber?: number;
+    gasSponsored: boolean;
+  };
 }
 
 

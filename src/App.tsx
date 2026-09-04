@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { TabType, SMEStock, InvoiceItem, DebtBridgeLoan, Transaction, TokenAsset, DEXSwapParams, TradeOrder } from './types';
 import { INITIAL_STOCKS, INITIAL_INVOICES, INITIAL_LOANS, INITIAL_TRANSACTIONS, generateStockPriceHistory } from './data/mockData';
 import { INITIAL_TOKENS, UNISWAP_V3_ADDRESSES } from './data/tokenData';
@@ -60,51 +60,114 @@ export default function App() {
   const [connectWalletDefaultTab, setConnectWalletDefaultTab] = useState<'base' | 'metamask' | 'coinbase'>('base');
   const [selectedDepositToken, setSelectedDepositToken] = useState<TokenAsset | undefined>(undefined);
   const [selectedSendToken, setSelectedSendToken] = useState<TokenAsset | undefined>(undefined);
+  const [copilotInitialPrompt, setCopilotInitialPrompt] = useState<string>('');
 
   const handleOpenConnectWallet = (tab: 'base' | 'metamask' | 'coinbase' = 'base') => {
     setConnectWalletDefaultTab(tab);
     setIsConnectWalletOpen(true);
   };
 
+  // Reusable backend REST API data fetcher
+  const loadBackendData = useCallback(async () => {
+    try {
+      const [stocksRes, invoicesRes, loansRes, txsRes, tokensRes] = await Promise.allSettled([
+        ApiService.getStocks(),
+        ApiService.getInvoices(),
+        ApiService.getLoans(),
+        ApiService.getTransactions(50),
+        ApiService.getTokens()
+      ]);
+
+      if (stocksRes.status === 'fulfilled' && stocksRes.value.data) {
+        setStocks(stocksRes.value.data);
+      }
+      if (invoicesRes.status === 'fulfilled' && invoicesRes.value.data) {
+        setInvoices(invoicesRes.value.data);
+      }
+      if (loansRes.status === 'fulfilled' && loansRes.value.data) {
+        setLoans(loansRes.value.data);
+      }
+      if (txsRes.status === 'fulfilled' && txsRes.value.data) {
+        setTransactions(txsRes.value.data);
+      }
+      if (tokensRes.status === 'fulfilled' && tokensRes.value.data) {
+        setTokens(tokensRes.value.data);
+      }
+      if (refetchOnchainBalances) {
+        refetchOnchainBalances();
+      }
+    } catch (err) {
+      console.warn('Using local fallback state, API server initial load:', err);
+    }
+  }, [refetchOnchainBalances]);
+
   // Initial fetch from backend REST API
   useEffect(() => {
-    async function loadBackendData() {
-      try {
-        const [stocksRes, invoicesRes, loansRes, txsRes, tokensRes] = await Promise.allSettled([
-          ApiService.getStocks(),
-          ApiService.getInvoices(),
-          ApiService.getLoans(),
-          ApiService.getTransactions(50),
-          ApiService.getTokens()
-        ]);
-
-        if (stocksRes.status === 'fulfilled' && stocksRes.value.data) {
-          setStocks(stocksRes.value.data);
-        }
-        if (invoicesRes.status === 'fulfilled' && invoicesRes.value.data) {
-          setInvoices(invoicesRes.value.data);
-        }
-        if (loansRes.status === 'fulfilled' && loansRes.value.data) {
-          setLoans(loansRes.value.data);
-        }
-        if (txsRes.status === 'fulfilled' && txsRes.value.data) {
-          setTransactions(txsRes.value.data);
-        }
-        if (tokensRes.status === 'fulfilled' && tokensRes.value.data) {
-          setTokens(tokensRes.value.data);
-        }
-      } catch (err) {
-        console.warn('Using local fallback state, API server initial load:', err);
-      }
-    }
     loadBackendData();
-  }, []);
+  }, [loadBackendData]);
 
   // Active token balances (reflects live onchain data when connected, demo when disconnected)
+  const [userBackendZig, setUserBackendZig] = useState<number>(0);
+  const [airdropBanner, setAirdropBanner] = useState<{
+    show: boolean;
+    claimedNow: boolean;
+    message: string;
+  }>({ show: false, claimedNow: false, message: '' });
+
+  // Monitor active user profile & auto-claim airdrop (1,000 $ZIG + 400 stocks)
+  useEffect(() => {
+    if (!activeAddress) {
+      setUserBackendZig(0);
+      return;
+    }
+
+    let isMounted = true;
+
+    // 1. Fetch user portfolio to load backend ZIG balance
+    ApiService.getUserProfile(activeAddress)
+      .then((res) => {
+        if (isMounted && res.success && res.data?.portfolio?.zigBalance) {
+          setUserBackendZig(res.data.portfolio.zigBalance);
+        }
+      })
+      .catch((e) => console.warn('User profile fetch note:', e));
+
+    // 2. Check and auto-claim airdrop if not claimed yet
+    ApiService.getAirdropStatus(activeAddress)
+      .then(async (status) => {
+        if (!isMounted) return;
+        if (!status.claimed) {
+          try {
+            console.log(`[Auto Airdrop] New user detected: ${activeAddress}. Claiming 1,000 $ZIG + 400 stocks...`);
+            const claimRes = await ApiService.claimAirdrop(activeAddress);
+            if (claimRes.success && isMounted) {
+              setUserBackendZig((prev) => Math.max(prev, 1000));
+              setAirdropBanner({
+                show: true,
+                claimedNow: true,
+                message: '🎁 Welcome Airdrop Activated: 1,000 $ZIG Stablecoin ($38.46) + 400 SME stock tokens allocated to your wallet for trading on Base Sepolia!',
+              });
+              loadBackendData();
+              if (refetchOnchainBalances) refetchOnchainBalances();
+            }
+          } catch (claimErr) {
+            console.warn('Auto airdrop claim notice:', claimErr);
+          }
+        }
+      })
+      .catch((err) => console.warn('Airdrop status check notice:', err));
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activeAddress, loadBackendData, refetchOnchainBalances]);
+
   const displayTokens = liveOnchainTokens;
   const totalBalanceUSD = totalOnchainUSD;
   const zigToken = displayTokens.find(t => t.symbol === 'ZIG');
-  const zigBalance = zigToken ? zigToken.balance : (isWalletConnected ? 0 : 36933.00);
+  const zigBalance = zigToken 
+    ? Math.max(zigToken.balance, userBackendZig) 
+    : (isWalletConnected ? userBackendZig : 36933.00);
 
   // Open Deposit Modal with optional preselected token
   const handleOpenDeposit = (token?: TokenAsset) => {
@@ -640,6 +703,42 @@ export default function App() {
         />
       </div>
 
+      {/* Airdrop Welcome Notification Banner */}
+      {airdropBanner.show && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mt-2 mb-2 animate-fade-in">
+          <div className="p-3.5 sm:p-4 bg-gradient-to-r from-emerald-600 via-teal-600 to-blue-600 text-white rounded-2xl shadow-lg flex items-center justify-between gap-3 border border-emerald-400/40">
+            <div className="flex items-center space-x-3 min-w-0">
+              <div className="w-9 h-9 rounded-xl bg-white/20 backdrop-blur-md flex items-center justify-center text-lg shrink-0">
+                🎁
+              </div>
+              <div className="min-w-0">
+                <div className="text-xs sm:text-sm font-extrabold truncate">
+                  {airdropBanner.message}
+                </div>
+                <div className="text-[11px] text-emerald-100 mt-0.5">
+                  Your wallet is credited with 1,000 $ZIG and ready to trade SME stocks on Base Sepolia!
+                </div>
+              </div>
+            </div>
+            <div className="flex items-center space-x-2 shrink-0">
+              <button
+                onClick={() => setActiveTab('trading')}
+                className="px-3.5 py-1.5 bg-white text-emerald-900 hover:bg-emerald-50 text-xs font-black rounded-xl shadow-xs transition-all cursor-pointer"
+              >
+                Trade with ZIG
+              </button>
+              <button
+                onClick={() => setAirdropBanner(prev => ({ ...prev, show: false }))}
+                className="w-7 h-7 rounded-lg bg-white/10 hover:bg-white/25 text-white flex items-center justify-center text-xs transition-colors cursor-pointer"
+                title="Dismiss banner"
+              >
+                ✕
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <main className="transition-all animate-fade-in">
         {activeTab === 'dashboard' && (
           <DashboardView 
@@ -652,6 +751,10 @@ export default function App() {
             onOpenSend={() => handleOpenSend()}
             onOpenSwap={() => setActiveTab('trading')}
             onOpenTokenize={() => handleOpenTokenize()}
+            onOpenCopilot={(prompt) => {
+              if (prompt) setCopilotInitialPrompt(prompt);
+              setActiveTab('aiAdvisor');
+            }}
           />
         )}
 
@@ -697,7 +800,13 @@ export default function App() {
         {activeTab === 'zig' && (
           <ZigHubView 
             zigBalance={zigBalance} 
-            onSwapZig={handleSwapZig} 
+            onSwapZig={handleSwapZig}
+            activeAddress={activeAddress}
+            onOpenConnectWallet={() => handleOpenConnectWallet('base')}
+            onRefreshBalances={() => {
+              loadBackendData();
+              if (refetchOnchainBalances) refetchOnchainBalances();
+            }}
           />
         )}
 
@@ -707,7 +816,19 @@ export default function App() {
 
         {activeTab === 'aiAdvisor' && (
           <AiAdvisorView 
-            portfolioContext={{ totalBalanceUSD, zigBalance, stocksCount: stocks.length }} 
+            portfolioContext={{ 
+              totalBalanceUSD, 
+              zigBalance, 
+              stocksCount: stocks.length,
+              tokens: displayTokens,
+              stocks
+            }} 
+            stocks={stocks}
+            tokens={displayTokens}
+            walletAddress={activeAddress || undefined}
+            initialPrompt={copilotInitialPrompt}
+            onRefreshData={loadBackendData}
+            onNavigateToTab={(tab) => setActiveTab(tab as TabType)}
           />
         )}
 
