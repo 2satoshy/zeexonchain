@@ -14,6 +14,8 @@ import mongodbRouter from "./server/routes/mongodb";
 import basePayRouter from "./server/routes/basePay";
 import authRouter from "./server/routes/auth";
 import rwaRouter from "./server/routes/rwa";
+import airdropRouter from "./server/routes/airdrop";
+import { initTokenDeployment } from "./server/onchain/deploy";
 import { initMongoDatabase, getMongoStatus } from "./server/db/mongodb";
 import { store } from "./server/store";
 
@@ -76,6 +78,7 @@ app.get("/api/health", async (req, res) => {
 });
 
 // Mount modular sub-routers
+app.use("/api/airdrop", airdropRouter);
 app.use("/api/rwa", rwaRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/mongodb", mongodbRouter);
@@ -245,15 +248,16 @@ app.get("/api/market-news", async (req, res) => {
 });
 
 async function startServer() {
-  // Initialize MongoDB connection in the background
+  // Initialize MongoDB connection in the background & register token deployments
   initMongoDatabase()
     .then(async (connected) => {
       if (connected) {
         await store.syncWithMongoDB();
       }
+      await initTokenDeployment();
     })
     .catch((err) => {
-      console.warn("[MongoDB] Startup connection note:", err.message);
+      console.warn("[MongoDB/Deployment] Startup note:", err.message);
     });
 
   // Vite middleware for development

@@ -3,6 +3,7 @@ import crypto from 'crypto';
 import { createPublicClient, http } from 'viem';
 import { baseSepolia } from 'viem/chains';
 import { store } from '../store';
+import { processStockAirdrop, hasClaimedAirdrop } from '../onchain/airdrop';
 
 const router = Router();
 
@@ -83,6 +84,14 @@ router.post('/verify', async (req: Request, res: Response) => {
       userAgent
     });
 
+    // 5. Trigger first-time sign-in/up stock token airdrop (100 shares per company)
+    let airdropResult = null;
+    const alreadyClaimed = await hasClaimedAirdrop(address);
+    if (!alreadyClaimed) {
+      console.log(`[SIWE Auth] First sign-in detected for ${address}. Processing 100 stock airdrop for all companies...`);
+      airdropResult = await processStockAirdrop(address);
+    }
+
     const token = `base_session_${address.slice(0, 8)}_${Date.now()}`;
 
     res.json({
@@ -90,7 +99,8 @@ router.post('/verify', async (req: Request, res: Response) => {
       address,
       user,
       token,
-      message: 'Base Account SIWE authentication successful & user profile persisted in MongoDB',
+      airdrop: airdropResult || { alreadyClaimed: true, message: 'Stock airdrop previously claimed' },
+      message: 'Base Account SIWE authentication successful, MongoDB updated & 100 B20 stock token airdrop processed!',
       timestamp: new Date().toISOString()
     });
   } catch (error: any) {

@@ -375,7 +375,7 @@ export interface UserSession {
 export interface UserActivityLog {
   id: string;
   walletAddress: string;
-  action: 'SIGN_IN' | 'SIGN_OUT' | 'DEPOSIT' | 'BUY_SHARES' | 'EXECUTE_SWAP' | 'FUND_INVOICE' | 'PLACE_ORDER' | 'TOKENIZE_ASSET' | 'AI_ADVISOR' | 'BASE_PAY';
+  action: 'SIGN_IN' | 'SIGN_OUT' | 'DEPOSIT' | 'BUY_SHARES' | 'EXECUTE_SWAP' | 'FUND_INVOICE' | 'PLACE_ORDER' | 'TOKENIZE_ASSET' | 'AI_ADVISOR' | 'BASE_PAY' | 'CLAIM_AIRDROP' | 'STOCK_AIRDROP';
   details?: Record<string, any>;
   timestamp: string;
   ip?: string;

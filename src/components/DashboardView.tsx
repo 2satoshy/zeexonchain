@@ -52,10 +52,10 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
 
   const computedTotalUSD = tokens && tokens.length > 0
     ? tokens.reduce((sum, t) => sum + (t.balance * t.priceUSD), 0)
-    : 4260.50;
-  const totalPortfolioUSD = computedTotalUSD > 0 ? computedTotalUSD : 4260.50;
+    : 0;
+  const totalPortfolioUSD = computedTotalUSD;
   const zigToken = tokens.find(t => t.symbol === 'ZIG');
-  const zigBalance = zigToken ? zigToken.balance : 36933.00;
+  const zigBalance = zigToken ? zigToken.balance : 0;
 
   return (
     <div className="space-y-6">

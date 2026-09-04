@@ -35,9 +35,10 @@ export default function App() {
   const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
   const [tokens, setTokens] = useState<TokenAsset[]>(INITIAL_TOKENS);
   
-  // Real-time Onchain Wagmi hook reading ETH & ERC20 balances directly from Base Sepolia
+  // Real-time Onchain Wagmi hook reading ETH & ERC20 balances directly from Base Sepolia & Mainnet
   const {
     activeAddress,
+    isWalletConnected,
     blockNumber,
     tokens: liveOnchainTokens,
     totalOnchainUSD,
@@ -99,11 +100,11 @@ export default function App() {
     loadBackendData();
   }, []);
 
-  // Active token balances (reflects live onchain data)
-  const displayTokens = liveOnchainTokens.length > 0 ? liveOnchainTokens : tokens;
-  const totalBalanceUSD = totalOnchainUSD || displayTokens.reduce((sum, t) => sum + (t.balance * t.priceUSD), 0);
+  // Active token balances (reflects live onchain data when connected, demo when disconnected)
+  const displayTokens = liveOnchainTokens;
+  const totalBalanceUSD = totalOnchainUSD;
   const zigToken = displayTokens.find(t => t.symbol === 'ZIG');
-  const zigBalance = zigToken ? zigToken.balance : 36933.00;
+  const zigBalance = zigToken ? zigToken.balance : (isWalletConnected ? 0 : 36933.00);
 
   // Open Deposit Modal with optional preselected token
   const handleOpenDeposit = (token?: TokenAsset) => {

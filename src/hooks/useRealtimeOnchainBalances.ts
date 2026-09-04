@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useAccount, useBalance, useReadContract, useBlockNumber } from 'wagmi';
 import { formatUnits, formatEther, Address, isAddress } from 'viem';
-import { baseSepolia } from 'wagmi/chains';
+import { baseSepolia, base } from 'wagmi/chains';
 import { useEvmAddress, useCurrentUser } from '@coinbase/cdp-hooks';
 import { ERC20_ABI } from '../config/wagmi';
 import { TokenAsset } from '../types';
@@ -36,18 +36,18 @@ export function useRealtimeOnchainBalances(customTokens: TokenAsset[] = INITIAL_
     if (cdpAddress && isAddress(cdpAddress)) return cdpAddress as `0x${string}`;
     const cdpEvm = currentUser?.evmAccountObjects?.[0]?.address;
     if (cdpEvm && isAddress(cdpEvm)) return cdpEvm as `0x${string}`;
-    return '0x71C824aD3Fe479B92c578f142EbF472bC19638A9' as `0x${string}`;
+    return undefined;
   }, [wagmiAddress, cdpAddress, currentUser]);
 
-  const isWalletConnected = Boolean(isWagmiConnected || cdpAddress || currentUser?.evmAccountObjects?.length);
+  const isWalletConnected = Boolean(activeAddress);
 
-  // 2. Watch Live Base Sepolia Block Height
+  // 2. Watch Live Base Block Height
   const { data: blockNumber } = useBlockNumber({
     chainId: baseSepolia.id,
     watch: true,
   });
 
-  // 3. Explicit Wagmi `useBalance` for Native ETH
+  // 3. Wagmi `useBalance` for Native ETH on Base Sepolia & Base Mainnet
   const {
     data: ethBalanceData,
     isLoading: isEthLoading,
@@ -61,8 +61,21 @@ export function useRealtimeOnchainBalances(customTokens: TokenAsset[] = INITIAL_
     },
   });
 
-  // 4. Explicit Wagmi `useReadContract` for Core ERC-20 Tokens
-  // USDC
+  const {
+    data: mainnetEthData,
+    isLoading: isMainnetEthLoading,
+    refetch: refetchMainnetEth,
+    isRefetching: isMainnetEthRefetching,
+  } = useBalance({
+    address: activeAddress,
+    chainId: base.id,
+    query: {
+      enabled: Boolean(activeAddress && isAddress(activeAddress)),
+    },
+  });
+
+  // 4. Wagmi `useReadContract` for Core ERC-20 Tokens (Base Sepolia & Base Mainnet)
+  // USDC (Base Sepolia)
   const {
     data: usdcBalData,
     isLoading: isUsdcLoading,
@@ -74,6 +87,24 @@ export function useRealtimeOnchainBalances(customTokens: TokenAsset[] = INITIAL_
     functionName: 'balanceOf',
     args: activeAddress ? [activeAddress] : undefined,
     chainId: baseSepolia.id,
+    query: {
+      enabled: Boolean(activeAddress && isAddress(activeAddress)),
+    },
+  });
+
+  // USDC (Base Mainnet)
+  const mainnetUsdcAddress = '0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913' as Address;
+  const {
+    data: mainnetUsdcBalData,
+    isLoading: isMainnetUsdcLoading,
+    refetch: refetchMainnetUsdc,
+    isRefetching: isMainnetUsdcRefetching,
+  } = useReadContract({
+    address: mainnetUsdcAddress,
+    abi: ERC20_ABI,
+    functionName: 'balanceOf',
+    args: activeAddress ? [activeAddress] : undefined,
+    chainId: base.id,
     query: {
       enabled: Boolean(activeAddress && isAddress(activeAddress)),
     },
@@ -188,103 +219,113 @@ export function useRealtimeOnchainBalances(customTokens: TokenAsset[] = INITIAL_
 
   // 5. Merge onchain results into TokenAsset collection
   const mergedTokens = useMemo<TokenAsset[]>(() => {
-    const rawEthFormatted = ethBalanceData ? formatEther(ethBalanceData.value) : undefined;
-    const ethNum = rawEthFormatted ? parseFloat(rawEthFormatted) : undefined;
+    // If NO wallet is connected, show demo/placeholder balances for demo preview
+    if (!isWalletConnected) {
+      return customTokens;
+    }
+
+    // Connected user: calculate REAL on-chain balances across Base Sepolia & Mainnet
+    const sepoliaEth = ethBalanceData ? parseFloat(formatEther(ethBalanceData.value)) : 0;
+    const mainnetEth = mainnetEthData ? parseFloat(formatEther(mainnetEthData.value)) : 0;
+    const totalEth = sepoliaEth + mainnetEth;
+
+    const sepoliaUsdc = usdcBalData !== undefined && typeof usdcBalData === 'bigint' ? parseFloat(formatUnits(usdcBalData, 6)) : 0;
+    const mainnetUsdc = mainnetUsdcBalData !== undefined && typeof mainnetUsdcBalData === 'bigint' ? parseFloat(formatUnits(mainnetUsdcBalData, 6)) : 0;
+    const totalUsdc = sepoliaUsdc + mainnetUsdc;
+
+    const wethBal = wethBalData !== undefined && typeof wethBalData === 'bigint' ? parseFloat(formatUnits(wethBalData, 18)) : 0;
+    const zigBal = zigBalData !== undefined && typeof zigBalData === 'bigint' ? parseFloat(formatUnits(zigBalData, 18)) : 0;
+    const bambaBal = bambaBalData !== undefined && typeof bambaBalData === 'bigint' ? parseFloat(formatUnits(bambaBalData, 18)) : 0;
+    const simbaBal = simbaBalData !== undefined && typeof simbaBalData === 'bigint' ? parseFloat(formatUnits(simbaBalData, 18)) : 0;
+    const teaBal = teaBalData !== undefined && typeof teaBalData === 'bigint' ? parseFloat(formatUnits(teaBalData, 18)) : 0;
+    const mukuruBal = mukuruBalData !== undefined && typeof mukuruBalData === 'bigint' ? parseFloat(formatUnits(mukuruBalData, 18)) : 0;
 
     return customTokens.map((token) => {
       // Native ETH
       if (token.symbol === 'ETH' || token.address === '0x0000000000000000000000000000000000000000') {
-        const liveBal = ethNum !== undefined && !isNaN(ethNum) ? ethNum : token.balance;
         return {
           ...token,
-          balance: liveBal,
-          balanceUSD: liveBal * token.priceUSD,
+          balance: totalEth,
+          balanceUSD: totalEth * token.priceUSD,
         };
       }
 
       // USDC
-      if (token.symbol === 'USDC' && usdcBalData !== undefined && typeof usdcBalData === 'bigint') {
-        const parsed = parseFloat(formatUnits(usdcBalData, token.decimals));
-        const liveBal = !isNaN(parsed) ? parsed : token.balance;
+      if (token.symbol === 'USDC') {
         return {
           ...token,
-          balance: liveBal,
-          balanceUSD: liveBal * token.priceUSD,
+          balance: totalUsdc,
+          balanceUSD: totalUsdc * token.priceUSD,
         };
       }
 
       // WETH
-      if (token.symbol === 'WETH' && wethBalData !== undefined && typeof wethBalData === 'bigint') {
-        const parsed = parseFloat(formatUnits(wethBalData, token.decimals));
-        const liveBal = !isNaN(parsed) ? parsed : token.balance;
+      if (token.symbol === 'WETH') {
         return {
           ...token,
-          balance: liveBal,
-          balanceUSD: liveBal * token.priceUSD,
+          balance: wethBal,
+          balanceUSD: wethBal * token.priceUSD,
         };
       }
 
       // ZIG
-      if (token.symbol === 'ZIG' && zigBalData !== undefined && typeof zigBalData === 'bigint') {
-        const parsed = parseFloat(formatUnits(zigBalData, token.decimals));
-        const liveBal = !isNaN(parsed) ? parsed : token.balance;
+      if (token.symbol === 'ZIG') {
         return {
           ...token,
-          balance: liveBal,
-          balanceUSD: liveBal * token.priceUSD,
+          balance: zigBal,
+          balanceUSD: zigBal * token.priceUSD,
         };
       }
 
       // BAMBA
-      if (token.symbol === 'BAMBA' && bambaBalData !== undefined && typeof bambaBalData === 'bigint') {
-        const parsed = parseFloat(formatUnits(bambaBalData, token.decimals));
-        const liveBal = !isNaN(parsed) ? parsed : token.balance;
+      if (token.symbol === 'BAMBA') {
         return {
           ...token,
-          balance: liveBal,
-          balanceUSD: liveBal * token.priceUSD,
+          balance: bambaBal,
+          balanceUSD: bambaBal * token.priceUSD,
         };
       }
 
       // SIMBA
-      if (token.symbol === 'SIMBA' && simbaBalData !== undefined && typeof simbaBalData === 'bigint') {
-        const parsed = parseFloat(formatUnits(simbaBalData, token.decimals));
-        const liveBal = !isNaN(parsed) ? parsed : token.balance;
+      if (token.symbol === 'SIMBA') {
         return {
           ...token,
-          balance: liveBal,
-          balanceUSD: liveBal * token.priceUSD,
+          balance: simbaBal,
+          balanceUSD: simbaBal * token.priceUSD,
         };
       }
 
       // TEA
-      if ((token.symbol === 'TEA' || token.symbol === 'NYTEA') && teaBalData !== undefined && typeof teaBalData === 'bigint') {
-        const parsed = parseFloat(formatUnits(teaBalData, token.decimals));
-        const liveBal = !isNaN(parsed) ? parsed : token.balance;
+      if (token.symbol === 'TEA' || token.symbol === 'NYTEA') {
         return {
           ...token,
-          balance: liveBal,
-          balanceUSD: liveBal * token.priceUSD,
+          balance: teaBal,
+          balanceUSD: teaBal * token.priceUSD,
         };
       }
 
       // MUKURU
-      if (token.symbol === 'MUKURU' && mukuruBalData !== undefined && typeof mukuruBalData === 'bigint') {
-        const parsed = parseFloat(formatUnits(mukuruBalData, token.decimals));
-        const liveBal = !isNaN(parsed) ? parsed : token.balance;
+      if (token.symbol === 'MUKURU') {
         return {
           ...token,
-          balance: liveBal,
-          balanceUSD: liveBal * token.priceUSD,
+          balance: mukuruBal,
+          balanceUSD: mukuruBal * token.priceUSD,
         };
       }
 
-      return token;
+      return {
+        ...token,
+        balance: 0,
+        balanceUSD: 0,
+      };
     });
   }, [
+    isWalletConnected,
     customTokens,
     ethBalanceData,
+    mainnetEthData,
     usdcBalData,
+    mainnetUsdcBalData,
     wethBalData,
     zigBalData,
     bambaBalData,
@@ -300,7 +341,9 @@ export function useRealtimeOnchainBalances(customTokens: TokenAsset[] = INITIAL_
   const refetchAll = async () => {
     await Promise.all([
       refetchEth(),
+      refetchMainnetEth(),
       refetchUsdc(),
+      refetchMainnetUsdc(),
       refetchWeth(),
       refetchZig(),
       refetchBamba(),
@@ -312,7 +355,9 @@ export function useRealtimeOnchainBalances(customTokens: TokenAsset[] = INITIAL_
 
   const isLoading =
     isEthLoading ||
+    isMainnetEthLoading ||
     isUsdcLoading ||
+    isMainnetUsdcLoading ||
     isWethLoading ||
     isZigLoading ||
     isBambaLoading ||
@@ -322,7 +367,9 @@ export function useRealtimeOnchainBalances(customTokens: TokenAsset[] = INITIAL_
 
   const isRefetching =
     isEthRefetching ||
+    isMainnetEthRefetching ||
     isUsdcRefetching ||
+    isMainnetUsdcRefetching ||
     isWethRefetching ||
     isZigRefetching ||
     isBambaRefetching ||
@@ -335,11 +382,11 @@ export function useRealtimeOnchainBalances(customTokens: TokenAsset[] = INITIAL_
     isWalletConnected,
     blockNumber,
     tokens: mergedTokens,
-    rawEthBalance: ethBalanceData ? formatEther(ethBalanceData.value) : '0.000',
+    rawEthBalance: ethBalanceData ? formatEther(ethBalanceData.value) : (mainnetEthData ? formatEther(mainnetEthData.value) : '0.000'),
     totalOnchainUSD,
     isLoading,
     isRefetching,
     refetchAll,
-    source: ethBalanceData || usdcBalData !== undefined ? 'onchain' : 'fallback',
+    source: isWalletConnected ? 'onchain' : 'fallback',
   };
 }

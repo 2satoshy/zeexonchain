@@ -115,7 +115,27 @@ export const HomeHeroSwipeCard: React.FC<HomeHeroSwipeCardProps> = ({
     return globalFormatAmount(usdValue, showSymbol);
   };
 
+  // Helper to get live balance for symbol from tokens prop if available
+  const getLiveToken = (symbol: string) => {
+    if (!tokens || tokens.length === 0) return null;
+    return tokens.find(t => t.symbol === symbol || (symbol === 'TEA' && t.symbol === 'NYTEA') || (symbol === 'NYTEA' && t.symbol === 'TEA'));
+  };
+
+  const getLiveBal = (symbol: string, defaultBal: number) => {
+    const live = getLiveToken(symbol);
+    return live !== null && live !== undefined ? live.balance : defaultBal;
+  };
+
   // Comprehensive user asset list across all required categories
+  const teaBal = getLiveBal('TEA', 550);
+  const mukuruBal = getLiveBal('MUKURU', 320);
+  const simbaBal = getLiveBal('SIMBA', 800);
+  const bambaBal = getLiveBal('BAMBA', 1250);
+  const usdcBal = getLiveBal('USDC', 1420.50);
+  const zigBal = getLiveBal('ZIG', 36933.00);
+  const ethBal = getLiveBal('ETH', 0.35);
+  const wethBal = getLiveBal('WETH', 0.15);
+
   const allUserAssets: UserAssetItem[] = [
     // 1. Stocks & Token Equities
     {
@@ -124,10 +144,10 @@ export const HomeHeroSwipeCard: React.FC<HomeHeroSwipeCardProps> = ({
       symbol: 'TEA',
       category: 'stocks',
       categoryLabel: 'Tokenized Stock',
-      balance: 550,
-      balanceFormatted: '550.00 Shares',
-      valueUSD: 880.00,
-      valueZIG: 880.00 * oracleRate,
+      balance: teaBal,
+      balanceFormatted: `${teaBal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Shares`,
+      valueUSD: teaBal * 1.60,
+      valueZIG: teaBal * 1.60 * oracleRate,
       priceUSD: 1.60,
       priceZIG: 1.60 * oracleRate,
       change24h: 4.5,
@@ -143,10 +163,10 @@ export const HomeHeroSwipeCard: React.FC<HomeHeroSwipeCardProps> = ({
       symbol: 'MUKURU',
       category: 'stocks',
       categoryLabel: 'Tokenized Stock',
-      balance: 320,
-      balanceFormatted: '320.00 Shares',
-      valueUSD: 755.00,
-      valueZIG: 755.00 * oracleRate,
+      balance: mukuruBal,
+      balanceFormatted: `${mukuruBal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Shares`,
+      valueUSD: mukuruBal * 2.36,
+      valueZIG: mukuruBal * 2.36 * oracleRate,
       priceUSD: 2.36,
       priceZIG: 2.36 * oracleRate,
       change24h: 6.2,
@@ -162,10 +182,10 @@ export const HomeHeroSwipeCard: React.FC<HomeHeroSwipeCardProps> = ({
       symbol: 'SIMBA',
       category: 'stocks',
       categoryLabel: 'Tokenized Stock',
-      balance: 800,
-      balanceFormatted: '800.00 Shares',
-      valueUSD: 680.00,
-      valueZIG: 680.00 * oracleRate,
+      balance: simbaBal,
+      balanceFormatted: `${simbaBal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Shares`,
+      valueUSD: simbaBal * 0.85,
+      valueZIG: simbaBal * 0.85 * oracleRate,
       priceUSD: 0.85,
       priceZIG: 0.85 * oracleRate,
       change24h: 12.1,
@@ -181,10 +201,10 @@ export const HomeHeroSwipeCard: React.FC<HomeHeroSwipeCardProps> = ({
       symbol: 'BAMBA',
       category: 'stocks',
       categoryLabel: 'Tokenized Stock',
-      balance: 1250,
-      balanceFormatted: '1,250.00 Shares',
-      valueUSD: 525.00,
-      valueZIG: 525.00 * oracleRate,
+      balance: bambaBal,
+      balanceFormatted: `${bambaBal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} Shares`,
+      valueUSD: bambaBal * 0.42,
+      valueZIG: bambaBal * 0.42 * oracleRate,
       priceUSD: 0.42,
       priceZIG: 0.42 * oracleRate,
       change24h: 8.4,
@@ -202,10 +222,10 @@ export const HomeHeroSwipeCard: React.FC<HomeHeroSwipeCardProps> = ({
       symbol: 'USDC',
       category: 'stablecoins',
       categoryLabel: 'USD Stablecoin',
-      balance: 1420.50,
-      balanceFormatted: '1,420.50 USDC',
-      valueUSD: 1420.50,
-      valueZIG: 1420.50 * oracleRate,
+      balance: usdcBal,
+      balanceFormatted: `${usdcBal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USDC`,
+      valueUSD: usdcBal,
+      valueZIG: usdcBal * oracleRate,
       priceUSD: 1.00,
       priceZIG: oracleRate,
       change24h: 0.01,
@@ -221,10 +241,10 @@ export const HomeHeroSwipeCard: React.FC<HomeHeroSwipeCardProps> = ({
       symbol: '$ZIG',
       category: 'stablecoins',
       categoryLabel: 'Gold Stablecoin',
-      balance: 36933.00,
-      balanceFormatted: '36,933.00 ZIG',
-      valueUSD: 1420.50,
-      valueZIG: 36933.00,
+      balance: zigBal,
+      balanceFormatted: `${zigBal.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ZIG`,
+      valueUSD: zigBal / oracleRate,
+      valueZIG: zigBal,
       priceUSD: 1 / oracleRate,
       priceZIG: 1.00,
       change24h: 0.05,
@@ -238,8 +258,8 @@ export const HomeHeroSwipeCard: React.FC<HomeHeroSwipeCardProps> = ({
     // 3. Currencies / Cash
     {
       id: 'curr-usd',
-      name: 'United States Dollar (Nostro Cash)',
-      symbol: 'USD',
+      name: 'USD Fiat Nostro Reserve',
+      symbol: 'USD (Nostro)',
       category: 'currencies',
       categoryLabel: 'Fiat Cash',
       balance: 500.00,
@@ -248,50 +268,50 @@ export const HomeHeroSwipeCard: React.FC<HomeHeroSwipeCardProps> = ({
       valueZIG: 500.00 * oracleRate,
       priceUSD: 1.00,
       priceZIG: oracleRate,
-      change24h: 0.0,
+      change24h: 0.00,
       icon: '🏦',
-      badge: 'Stanbic Bank Linked',
-      contractStandard: 'Bank Custody',
+      badge: 'Bank Custody',
+      contractStandard: 'Offchain Bank Reserve',
       description: 'Direct banking cash balance in Harare nostro account',
-      actionTab: 'profile'
+      actionTab: 'trading'
     },
     {
       id: 'curr-zig-cash',
-      name: 'Local Zimbabwe Gold (CABS Cash)',
-      symbol: 'ZIG Cash',
+      name: 'ZIG Electronic Cash',
+      symbol: 'ZIG (Bank)',
       category: 'currencies',
-      categoryLabel: 'Local Currency',
+      categoryLabel: 'Electronic Fiat',
       balance: 13000.00,
       balanceFormatted: '13,000.00 ZIG',
       valueUSD: 500.00,
       valueZIG: 13000.00,
       priceUSD: 1 / oracleRate,
       priceZIG: 1.00,
-      change24h: 0.0,
-      icon: '🇿🇼',
-      badge: 'Commercial Bank',
-      contractStandard: 'CABS Linked',
+      change24h: 0.00,
+      icon: '💳',
+      badge: 'ZiG RTGS',
+      contractStandard: 'National Switch',
       description: 'Physical electronic bank balance linked for POS and local retail',
-      actionTab: 'profile'
+      actionTab: 'zig'
     },
     {
       id: 'curr-zar',
-      name: 'South African Rand (Regional Trade)',
+      name: 'South African Rand Settlement',
       symbol: 'ZAR',
       category: 'currencies',
-      categoryLabel: 'SADC Fiat',
+      categoryLabel: 'Regional Fiat',
       balance: 9100.00,
       balanceFormatted: 'R 9,100.00 ZAR',
       valueUSD: 500.00,
       valueZIG: 500.00 * oracleRate,
-      priceUSD: 0.055,
-      priceZIG: 0.055 * oracleRate,
+      priceUSD: 0.0549,
+      priceZIG: 0.0549 * oracleRate,
       change24h: -0.4,
       icon: '🇿🇦',
-      badge: 'Cross-Border SADC',
-      contractStandard: 'Clearing Reserve',
-      description: 'Cross-border liquidity rail for South Africa import settling',
-      actionTab: 'profile'
+      badge: 'SADC Trade Corridor',
+      contractStandard: 'Cross-border Clearing',
+      description: 'Regional currency liquidity pool for cross-border logistics settlements',
+      actionTab: 'trading'
     },
 
     // 4. Crypto Assets
@@ -301,10 +321,10 @@ export const HomeHeroSwipeCard: React.FC<HomeHeroSwipeCardProps> = ({
       symbol: 'ETH',
       category: 'crypto',
       categoryLabel: 'Native Crypto',
-      balance: 0.35,
-      balanceFormatted: '0.350 ETH',
-      valueUSD: 945.00,
-      valueZIG: 945.00 * oracleRate,
+      balance: ethBal,
+      balanceFormatted: `${ethBal.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 4 })} ETH`,
+      valueUSD: ethBal * 2700.00,
+      valueZIG: ethBal * 2700.00 * oracleRate,
       priceUSD: 2700.00,
       priceZIG: 2700.00 * oracleRate,
       change24h: 3.2,
@@ -320,10 +340,10 @@ export const HomeHeroSwipeCard: React.FC<HomeHeroSwipeCardProps> = ({
       symbol: 'WETH',
       category: 'crypto',
       categoryLabel: 'DEX Crypto',
-      balance: 0.15,
-      balanceFormatted: '0.150 WETH',
-      valueUSD: 405.00,
-      valueZIG: 405.00 * oracleRate,
+      balance: wethBal,
+      balanceFormatted: `${wethBal.toLocaleString('en-US', { minimumFractionDigits: 3, maximumFractionDigits: 4 })} WETH`,
+      valueUSD: wethBal * 2700.00,
+      valueZIG: wethBal * 2700.00 * oracleRate,
       priceUSD: 2700.00,
       priceZIG: 2700.00 * oracleRate,
       change24h: 3.2,

@@ -1,4 +1,4 @@
-import { SMEStock, InvoiceItem, DebtBridgeLoan, Transaction, TokenAsset, SocialPost, TradeOrder, StartupListingApplication, UserProfile, UserSession, UserActivityLog } from '../src/types';
+import { SMEStock, InvoiceItem, DebtBridgeLoan, Transaction, TokenAsset, SocialPost, TradeOrder, StartupListingApplication, UserProfile, UserSession, UserActivityLog, BaseRWAAssetToken } from '../src/types';
 import { INITIAL_STOCKS, INITIAL_INVOICES, INITIAL_LOANS, INITIAL_TRANSACTIONS, INITIAL_SOCIAL_POSTS, generateStockPriceHistory } from '../src/data/mockData';
 import { INITIAL_TOKENS } from '../src/data/tokenData';
 import { getMongoCollection, getDatabase } from './db/mongodb';
@@ -81,6 +81,64 @@ class AppStore {
   private sessions: UserSession[] = [];
   private activityLogs: UserActivityLog[] = [];
   private userPortfoliosMap: Map<string, UserPortfolio> = new Map();
+  private rwaTokens: BaseRWAAssetToken[] = [
+    {
+      id: 'rwa-1',
+      name: 'Takura Agro Commodities RWA',
+      ticker: 'TKRA',
+      contractAddress: '0x3a9f1b2c4d5e6f7a8b9c0d1e2f3a4b5c6d7e8f9a',
+      decimals: 18,
+      totalSupply: 1000000,
+      maxAuthorizedSupply: 5000000,
+      issuerAddress: '0x71C824aD3Fe479B92c578f142EbF472bC19638A9',
+      custodianEscrow: 'Stanbic Nominees Zimbabwe Ltd (ZSE Trust Escrow #411)',
+      seczimFilingId: 'SECZ-RWA-2026-0914',
+      isPaused: false,
+      multiplier: 1.0,
+      eligibleHoldersRule: {
+        requiresKYC: true,
+        allowedCountries: ['ZW', 'ZA', 'US', 'GB', 'AE'],
+        restrictedAddresses: []
+      },
+      distributions: [
+        {
+          id: 'dist-1',
+          assetTicker: 'TKRA',
+          announcementDate: '2026-08-15',
+          payoutDate: '2026-09-15',
+          totalAmountUSD: 25000,
+          amountPerUnitUSD: 0.025,
+          currency: 'USDC',
+          status: 'PAID',
+          txHash: '0x8f7e6d5c4b3a2f1e0d9c8b7a6f5e4d3c2b1a0f9e'
+        }
+      ],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    },
+    {
+      id: 'rwa-2',
+      name: 'Nyanga Solar Grid Corp RWA',
+      ticker: 'NYNG',
+      contractAddress: '0x9f8e7d6c5b4a3f2e1d0c9b8a7f6e5d4c3b2a1f0e',
+      decimals: 18,
+      totalSupply: 500000,
+      maxAuthorizedSupply: 2000000,
+      issuerAddress: '0x71C824aD3Fe479B92c578f142EbF472bC19638A9',
+      custodianEscrow: 'CBZ Nominees Escrow Account #104',
+      seczimFilingId: 'SECZ-RWA-2026-0842',
+      isPaused: false,
+      multiplier: 1.0,
+      eligibleHoldersRule: {
+        requiresKYC: true,
+        allowedCountries: ['ZW', 'ZA', 'GB', 'SG'],
+        restrictedAddresses: []
+      },
+      distributions: [],
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    }
+  ];
 
   private userPortfolio: UserPortfolio = {
     usdBalance: 1420.50,
@@ -239,6 +297,16 @@ class AppStore {
       if (payCount > 0) {
         const mongoPayments = await basePayCol.find().sort({ createdAt: -1 }).limit(100).toArray();
         this.basePayments = mongoPayments.map(({ _id, ...rest }) => rest as unknown as BasePaymentRecord);
+      }
+
+      // 10. Base RWA Tokens
+      const rwaCol = db.collection('rwa_tokens');
+      const rwaCount = await rwaCol.countDocuments();
+      if (rwaCount === 0) {
+        await rwaCol.insertMany(JSON.parse(JSON.stringify(this.rwaTokens)));
+      } else {
+        const mongoRwa = await rwaCol.find().toArray();
+        this.rwaTokens = mongoRwa.map(({ _id, ...rest }) => rest as unknown as BaseRWAAssetToken);
       }
 
       this.isMongoSynced = true;
@@ -1071,17 +1139,30 @@ class AppStore {
 
     const norm = walletAddress.toLowerCase();
     if (!this.userPortfoliosMap.has(norm)) {
-      // Initialize isolated portfolio for new user address
+      // Initialize isolated portfolio for new user address with 0 balance
       const newPortfolio: UserPortfolio = {
-        usdBalance: 500.00,
-        zigBalance: 13000.00,
-        totalNetWorthUSD: 1000.00,
+        usdBalance: 0.00,
+        zigBalance: 0.00,
+        totalNetWorthUSD: 0.00,
         unclaimedDividendsUSD: 0,
         holdings: []
       };
       this.userPortfoliosMap.set(norm, newPortfolio);
     }
     return this.userPortfoliosMap.get(norm)!;
+  }
+
+  public addHoldingToUserPortfolio(walletAddress: string, holding: UserPortfolio['holdings'][0]): void {
+    const norm = walletAddress.toLowerCase();
+    const portfolio = this.getUserPortfolioForAddress(norm);
+    const existingIndex = portfolio.holdings.findIndex(h => h.ticker === holding.ticker || h.stockId === holding.stockId);
+    if (existingIndex >= 0) {
+      portfolio.holdings[existingIndex].units += holding.units;
+      portfolio.holdings[existingIndex].currentValueUSD = portfolio.holdings[existingIndex].units * holding.avgPriceUSD;
+    } else {
+      portfolio.holdings.push(holding);
+    }
+    portfolio.totalNetWorthUSD = portfolio.usdBalance + portfolio.holdings.reduce((sum, h) => sum + h.currentValueUSD, 0);
   }
 }
 
