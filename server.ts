@@ -13,6 +13,7 @@ import systemRouter from "./server/routes/system";
 import mongodbRouter from "./server/routes/mongodb";
 import basePayRouter from "./server/routes/basePay";
 import authRouter from "./server/routes/auth";
+import rwaRouter from "./server/routes/rwa";
 import { initMongoDatabase, getMongoStatus } from "./server/db/mongodb";
 import { store } from "./server/store";
 
@@ -75,6 +76,7 @@ app.get("/api/health", async (req, res) => {
 });
 
 // Mount modular sub-routers
+app.use("/api/rwa", rwaRouter);
 app.use("/api/auth", authRouter);
 app.use("/api/mongodb", mongodbRouter);
 app.use("/api/base-pay", basePayRouter);

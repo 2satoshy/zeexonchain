@@ -382,3 +382,40 @@ export interface UserActivityLog {
   userAgent?: string;
 }
 
+export interface BaseRWADistribution {
+  id: string;
+  assetTicker: string;
+  announcementDate: string;
+  payoutDate: string;
+  totalAmountUSD: number;
+  amountPerUnitUSD: number;
+  currency: 'USDC' | 'ZIG';
+  status: 'ANNOUNCED' | 'PROCESSING' | 'PAID';
+  txHash?: string;
+}
+
+export interface BaseRWAAssetToken {
+  id: string;
+  name: string;
+  ticker: string;
+  contractAddress: string;
+  decimals: number;
+  totalSupply: number;
+  maxAuthorizedSupply: number;
+  issuerAddress: string;
+  custodianEscrow: string;
+  seczimFilingId: string;
+  isPaused: boolean;
+  multiplier: number;
+  eligibleHoldersRule: {
+    requiresKYC: boolean;
+    allowedCountries: string[];
+    maxHoldersCount?: number;
+    restrictedAddresses: string[];
+  };
+  distributions: BaseRWADistribution[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+

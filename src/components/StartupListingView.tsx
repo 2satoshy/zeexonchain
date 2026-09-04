@@ -29,6 +29,7 @@ import {
 import { StartupListingApplication, SMEStock, TokenizationParams, TokenizationResult } from '../types';
 import { PaginationBar } from './PaginationBar';
 import { SwipeableContainer } from './SwipeableContainer';
+import { BaseRWAManagementModal } from './BaseRWAManagementModal';
 
 interface StartupListingViewProps {
   onAddStockToListing?: (newStock: SMEStock) => void;
@@ -235,6 +236,7 @@ export const StartupListingView: React.FC<StartupListingViewProps> = ({ onAddSto
   };
   const [applications, setApplications] = useState<StartupListingApplication[]>(SAMPLE_APPLICATIONS);
   const [selectedAppId, setSelectedAppId] = useState<string>('app-bamba');
+  const [isRwaModalOpen, setIsRwaModalOpen] = useState(false);
 
   // Form State for creating a new startup application
   const [companyName, setCompanyName] = useState('');
@@ -454,19 +456,26 @@ export const StartupListingView: React.FC<StartupListingViewProps> = ({ onAddSto
             </p>
           </div>
 
-          {/* Quick Metrics Badge */}
-          <div className="flex items-center gap-3 bg-slate-800/80 p-3 rounded-2xl border border-slate-700/80 shrink-0">
-            <div className="text-center px-3 border-r border-slate-700">
-              <div className="text-[10px] text-slate-400 font-medium uppercase">Active Listings</div>
-              <div className="text-lg font-extrabold text-white">{applications.length}</div>
-            </div>
-            <div className="text-center px-3 border-r border-slate-700">
-              <div className="text-[10px] text-slate-400 font-medium uppercase">Total RWA Capital</div>
-              <div className="text-lg font-extrabold text-emerald-400">$6.25M</div>
-            </div>
-            <div className="text-center px-3">
-              <div className="text-[10px] text-slate-400 font-medium uppercase">Token Standard</div>
-              <div className="text-xs font-bold text-blue-400">ERC-3643</div>
+          {/* Action Button & Metrics */}
+          <div className="flex flex-col sm:flex-row items-center gap-3 shrink-0">
+            <button
+              onClick={() => setIsRwaModalOpen(true)}
+              className="px-4 py-2.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold text-xs rounded-2xl shadow-md border border-blue-400/30 flex items-center space-x-2 cursor-pointer transition-all shrink-0"
+            >
+              <Coins className="w-4 h-4 text-blue-200" />
+              <span>Base RWA Specification Manager</span>
+              <Sparkles className="w-3.5 h-3.5" />
+            </button>
+
+            <div className="flex items-center gap-3 bg-slate-800/80 p-3 rounded-2xl border border-slate-700/80 shrink-0 text-xs">
+              <div className="text-center px-3 border-r border-slate-700">
+                <div className="text-[10px] text-slate-400 font-medium uppercase">Active Listings</div>
+                <div className="text-sm font-extrabold text-blue-400">14 SMEs</div>
+              </div>
+              <div className="text-center px-3">
+                <div className="text-[10px] text-slate-400 font-medium uppercase">Token Standard</div>
+                <div className="text-xs font-bold text-emerald-400">ERC-3643</div>
+              </div>
             </div>
           </div>
         </div>
@@ -1438,6 +1447,11 @@ export const StartupListingView: React.FC<StartupListingViewProps> = ({ onAddSto
         totalPages={totalPages}
         onPageChange={handlePageChange}
         itemName="listing hub steps"
+      />
+
+      <BaseRWAManagementModal
+        isOpen={isRwaModalOpen}
+        onClose={() => setIsRwaModalOpen(false)}
       />
     </div>
   );

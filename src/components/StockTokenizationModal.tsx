@@ -26,6 +26,7 @@ import { SMEStock, TokenAsset } from '../types';
 import { UNISWAP_V3_ADDRESSES, INITIAL_TOKEN_ASSETS } from '../data/tokenData';
 import { INITIAL_STOCKS } from '../data/mockData';
 import { ERC20_ABI } from '../config/wagmi';
+import { BaseRWAManagementModal } from './BaseRWAManagementModal';
 
 export interface StockBurnSuccessParams {
   stockTicker: string;
@@ -94,6 +95,7 @@ export const StockTokenizationModal: React.FC<StockTokenizationModalProps> = ({
   const [isBurning, setIsBurning] = useState<boolean>(false);
   const [burnStep, setBurnStep] = useState<number>(0);
   const [burnResult, setBurnResult] = useState<StockBurnSuccessParams | null>(null);
+  const [isRwaModalOpen, setIsRwaModalOpen] = useState<boolean>(false);
 
   // Selected Stock for Burn
   const currentSelectedStock = useMemo(() => {
@@ -314,40 +316,64 @@ export const StockTokenizationModal: React.FC<StockTokenizationModalProps> = ({
               </p>
             </div>
           </div>
-          <button
-            onClick={onClose}
-            className="p-2 rounded-full text-slate-400 hover:bg-slate-100 transition-colors cursor-pointer"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          <div className="flex items-center space-x-2">
+            <button
+              type="button"
+              onClick={() => setIsRwaModalOpen(true)}
+              className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 cursor-pointer shadow-sm"
+              title="Launch Base RWA Tokenization & Compliance Suite"
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>Base RWA Suite</span>
+            </button>
+            <button
+              onClick={onClose}
+              className="p-2 rounded-full text-slate-400 hover:bg-slate-100 transition-colors cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </div>
         </div>
 
         {/* Workflow Mode Tabs */}
         {!deployedResult && !burnResult && (
-          <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-100 rounded-2xl mt-4">
+          <div className="space-y-3 mt-4">
+            <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-100 rounded-2xl">
+              <button
+                type="button"
+                onClick={() => setModalMode('MINT')}
+                className={`py-2 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2 ${
+                  modalMode === 'MINT'
+                    ? 'bg-white text-indigo-900 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-900'
+                }`}
+              >
+                <Coins className="w-3.5 h-3.5" />
+                <span>Issue & Mint Stock</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setModalMode('BURN')}
+                className={`py-2 px-4 rounded-xl text-xs font-bold transition-all flex items-center justify-center space-x-2 ${
+                  modalMode === 'BURN'
+                    ? 'bg-white text-rose-900 shadow-sm'
+                    : 'text-slate-500 hover:text-slate-900'
+                }`}
+              >
+                <Flame className="w-3.5 h-3.5" />
+                <span>Burn & Delist Stock</span>
+              </button>
+            </div>
+
+            {/* Base RWA Specification Governance Button */}
             <button
               type="button"
-              onClick={() => setModalMode('MINT')}
-              className={`flex items-center justify-center space-x-2 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                modalMode === 'MINT'
-                  ? 'bg-white text-indigo-900 shadow-xs border border-slate-200'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
+              onClick={() => setIsRwaModalOpen(true)}
+              className="w-full py-2.5 px-4 rounded-2xl bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs shadow-sm flex items-center justify-center space-x-2 cursor-pointer transition-all border border-blue-500/30"
             >
-              <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-              <span>Issue / Mint SME Equity</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setModalMode('BURN')}
-              className={`flex items-center justify-center space-x-2 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                modalMode === 'BURN'
-                  ? 'bg-white text-rose-900 shadow-xs border border-rose-200'
-                  : 'text-slate-600 hover:text-slate-900'
-              }`}
-            >
-              <Flame className="w-3.5 h-3.5 text-rose-600" />
-              <span>Burn & Delist Stock</span>
+              <Building2 className="w-4 h-4" />
+              <span>Open Base RWA Specification Manager (7 Core Features)</span>
+              <Sparkles className="w-3.5 h-3.5" />
             </button>
           </div>
         )}
@@ -868,6 +894,11 @@ export const StockTokenizationModal: React.FC<StockTokenizationModalProps> = ({
           </>
         )}
 
+        <BaseRWAManagementModal
+          isOpen={isRwaModalOpen}
+          onClose={() => setIsRwaModalOpen(false)}
+          initialTicker={tokenTicker}
+        />
       </div>
     </div>
   );
