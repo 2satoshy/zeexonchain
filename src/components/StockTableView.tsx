@@ -269,6 +269,10 @@ export const StockTableView: React.FC<StockTableViewProps> = ({
                     {renderSortIndicator('age')}
                   </span>
                 </th>
+
+                <th className="py-3.5 px-5 font-bold text-slate-800 text-center w-[110px]">
+                  Trade
+                </th>
               </tr>
             </thead>
 
@@ -420,6 +424,24 @@ export const StockTableView: React.FC<StockTableViewProps> = ({
                       {/* Age */}
                       <td className="py-3.5 px-5 text-right text-sm font-medium text-slate-600">
                         {ageDisplay}
+                      </td>
+
+                      {/* Quick Trade Button (Buy / Sell / Swap) */}
+                      <td className="py-3.5 px-5 text-center" onClick={(e) => e.stopPropagation()}>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (onQuickBuy) {
+                              onQuickBuy(stock);
+                            } else {
+                              onSelectStock(stock);
+                            }
+                          }}
+                          className="px-3 py-1.5 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-bold text-xs rounded-xl shadow-xs hover:shadow-md transition-all active:scale-95 cursor-pointer flex items-center justify-center space-x-1 mx-auto"
+                        >
+                          <Sparkles className="w-3 h-3 text-amber-300" />
+                          <span>TRADE</span>
+                        </button>
                       </td>
                     </tr>
                   );
