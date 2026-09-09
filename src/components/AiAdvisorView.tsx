@@ -3,9 +3,10 @@ import {
   Sparkles, Send, Bot, User, ArrowRight, Loader2, CheckCircle2, 
   TrendingUp, RefreshCw, ArrowUpRight, ArrowDownLeft, ShieldCheck, 
   ExternalLink, Copy, Check, Zap, AlertCircle, PieChart, Coins, 
-  Wallet, Layers, ArrowLeftRight
+  Wallet, Layers, ArrowLeftRight, ShoppingBag, Receipt, Sliders
 } from 'lucide-react';
 import { ApiService } from '../services/api';
+import { SpendingInvestorModal } from './SpendingInvestorModal';
 import { 
   AiBrokerActionDetail, AiBrokerActionType, SMEStock, TokenAsset, 
   Transaction 
@@ -68,6 +69,7 @@ export const AiAdvisorView: React.FC<AiAdvisorViewProps> = ({
   const [copiedHash, setCopiedHash] = useState<string | null>(null);
   const [selectedCurrency, setSelectedCurrency] = useState<string>('USDC');
   const [selectedStock, setSelectedStock] = useState<string>('TKRA.zx');
+  const [isSpendingModalOpen, setIsSpendingModalOpen] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -228,6 +230,18 @@ export const AiAdvisorView: React.FC<AiAdvisorViewProps> = ({
             <p className="text-slate-300 text-xs sm:text-sm mt-1 max-w-2xl leading-relaxed">
               Type trades, swaps, buys from any currency into Zimbabwean tokenized equities. The Copilot reasons over your portfolio and executes transactions onchain.
             </p>
+
+            {/* Everyday Spending Auto-Investor Launcher Banner */}
+            <div className="mt-4">
+              <button
+                onClick={() => setIsSpendingModalOpen(true)}
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-500 hover:from-purple-400 hover:to-indigo-400 text-white text-xs font-bold shadow-lg shadow-purple-500/25 transition-all cursor-pointer"
+              >
+                <ShoppingBag className="w-4 h-4" />
+                <span>Everyday Spending Auto-Investor (Spotify, Netflix, AWS, Agro)</span>
+                <span className="px-1.5 py-0.5 rounded bg-white/20 text-[10px] uppercase tracking-wider font-extrabold">New</span>
+              </button>
+            </div>
           </div>
 
           {/* Quick Portfolio Snapshot & Execution Mode */}
@@ -627,6 +641,15 @@ export const AiAdvisorView: React.FC<AiAdvisorViewProps> = ({
           </div>
         </form>
       </div>
+      {/* Spending Investor Modal */}
+      <SpendingInvestorModal
+        isOpen={isSpendingModalOpen}
+        onClose={() => setIsSpendingModalOpen(false)}
+        walletAddress={walletAddress}
+        onSuccessExecute={async (msg) => {
+          if (onRefreshData) await onRefreshData();
+        }}
+      />
     </div>
   );
 };

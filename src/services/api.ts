@@ -573,5 +573,77 @@ export const ApiService = {
       method: 'POST',
       body: JSON.stringify({ address, rfqId, bidId }),
     });
+  },
+
+  // AI Spending-to-Stock Auto-Investor & Rebalancer
+  async scanSpendingStatement(address: string, statementText: string) {
+    return fetchJson<{
+      success: boolean;
+      summary: string;
+      totalRecommendedUSD: number;
+      matches: Array<{
+        merchantName: string;
+        category: string;
+        spentAmountUSD: number;
+        mappedTicker: string;
+        mappedCompanyName: string;
+        suggestedAllocationUSD: number;
+        aiRationale: string;
+        upsideScore: number;
+      }>;
+    }>('/spending-investor/scan', {
+      method: 'POST',
+      body: JSON.stringify({ address, statementText }),
+    });
+  },
+
+  async executeOneOffSpendingInvest(address: string, matches: any[]) {
+    return fetchJson<{
+      success: boolean;
+      totalInvestedUSD: number;
+      executionFeeUSD: number;
+      grandTotalUSD: number;
+      txHash: string;
+      message: string;
+    }>('/spending-investor/execute-oneoff', {
+      method: 'POST',
+      body: JSON.stringify({ address, matches }),
+    });
+  },
+
+  async toggleAutoPilotSubscription(address: string, autoRebalanceEnabled: boolean) {
+    return fetchJson<{
+      success: boolean;
+      subscription: {
+        address: string;
+        isActive: boolean;
+        planType: string;
+        feePaidUSD: number;
+        startedAt: string;
+        expiresAt?: string;
+        autoRebalanceEnabled: boolean;
+        totalRoundupsInvestedUSD: number;
+      };
+      message: string;
+    }>('/spending-investor/subscribe', {
+      method: 'POST',
+      body: JSON.stringify({ address, autoRebalanceEnabled }),
+    });
+  },
+
+  async getSpendingSubscription(address: string) {
+    return fetchJson<{
+      success: boolean;
+      subscription: {
+        address: string;
+        isActive: boolean;
+        planType: string;
+        feePaidUSD: number;
+        startedAt: string;
+        expiresAt?: string;
+        autoRebalanceEnabled: boolean;
+        totalRoundupsInvestedUSD: number;
+      };
+    }>(`/spending-investor/subscription?address=${encodeURIComponent(address)}`);
   }
 };

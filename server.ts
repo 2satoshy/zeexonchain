@@ -17,6 +17,7 @@ import rwaRouter from "./server/routes/rwa";
 import airdropRouter from "./server/routes/airdrop";
 import aiAdvisorRouter from "./server/routes/aiAdvisor";
 import workingCapitalRouter from "./server/routes/workingCapital";
+import spendingInvestorRouter from "./server/routes/spendingInvestor";
 import zigRouter from "./server/routes/zig";
 import onchainContractsRouter from "./server/routes/onchainContracts";
 import { initTokenDeployment } from "./server/onchain/deploy";
@@ -110,6 +111,9 @@ app.use("/api/ai-advisor", aiAdvisorRouter);
 
 // Unified Onchain Working Capital Hub (AI Underwriting, Revolving Credit, RFQ)
 app.use("/api/working-capital", workingCapitalRouter);
+
+// AI Spending-to-Stock Auto-Investor & Rebalancer Engine
+app.use("/api/spending-investor", spendingInvestorRouter);
 
 // WhatsApp Bot command simulation endpoint
 app.post("/api/whatsapp/simulate", async (req, res) => {

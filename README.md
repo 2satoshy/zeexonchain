@@ -20,7 +20,8 @@
 - [Overview & Problem Statement](#-overview--problem-statement)
 - [Key Features & Modules](#-key-features--modules)
   - [1. ⚡ Unified Onchain Working Capital Vault & AI Credit Underwriter](#1--unified-onchain-working-capital-vault--ai-credit-underwriter)
-  - [2. 🎯 Multi-Lender Loan RFQ & Yield Aggregator](#2--multi-lender-loan-rfq--yield-aggregator)
+  - [2. 🛍️ Everyday Spending-to-Stock Auto-Investor & Rebalancer](#2-️-everyday-spending-to-stock-auto-investor--rebalancer)
+  - [3. 🎯 Multi-Lender Loan RFQ & Yield Aggregator](#3--multi-lender-loan-rfq--yield-aggregator)
   - [3. 🚀 Deployed Tokenized B20 Stocks & 100-Stock First-Sign-In Airdrop](#3--deployed-tokenized-b20-stocks--100-stock-first-sign-in-airdrop)
   - [4. 🏛️ Base RWA Asset Tokenization & Distributions Engine](#4-️-base-rwa-asset-tokenization--distributions-engine)
   - [5. 💳 Base Pay Modal & Sponsored Gas Paymaster](#5--base-pay-modal--sponsored-gas-paymaster)
@@ -70,7 +71,14 @@ Small and Medium Enterprises (SMEs) across Zimbabwe and sub-Saharan Africa gener
 - **Gemini AI Financial Statement Underwriter:** Express route (`POST /api/working-capital/underwrite`) leverages Gemini 2.5 Flash to scan corporate P&L statements, calculate credit scores (300-850), and assign approved revolving credit limits.
 - **Instant Payroll & Capital Draws:** 1-click drawdown and repayment controls with real-time utilization meter and APY rate calculation.
 
-### 2. 🎯 Multi-Lender Loan RFQ & Yield Aggregator
+### 2. 🛍️ Everyday Spending-to-Stock Auto-Investor & Rebalancer
+- **Bank Statement & Subscription AI Scanner:** Express route (`POST /api/spending-investor/scan`) parses bank statement text, online invoice receipts (Spotify, Netflix, AWS), and AI hardware stack usage (Nvidia, Meta).
+- **Brand-to-Equity Matching:** Maps consumer & business spending into tokenized equities (e.g. *Spotify $\rightarrow$ SPOT*, *Nvidia GPU $\rightarrow$ NVDA*, *Agro Supplies $\rightarrow$ Takura Agro TKRA.zx*, *Solar Bills $\rightarrow$ Simba Solar SIMBA.zx*).
+- **Flexible Billing Tiers:**
+  - **One-Off Execution Fee ($1.99 / 50 ZIG):** Single batch auto-purchase based on current receipts without recurring commitments.
+  - **Autonomous Auto-Pilot Subscription ($4.99/mo / 150 ZIG/mo):** Automated roundup investing with live AI market sentiment & earnings forecasts rebalancing.
+
+### 3. 🎯 Multi-Lender Loan RFQ & Yield Aggregator
 - **On-Chain RFQ Broadcast:** Post corporate working capital requests (`POST /api/working-capital/rfq/create`) specifying loan amount, duration, and business purpose.
 - **Multi-Venue Competitive Bidding:** Automated quote aggregation across competing liquidity venues (**InvoiceX Vault Pool**, **ZSE Institutional Credit Fund**, **P2P Yield Syndicate**).
 - **Instant Settlement & Rate Upgrade:** 1-click quote acceptance (`POST /api/working-capital/rfq/accept`) updates the borrower's revolving credit vault parameters on Base L2.
