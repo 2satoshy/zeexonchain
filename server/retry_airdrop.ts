@@ -17,6 +17,8 @@
 
 import { createPublicClient, createWalletClient, http, parseEther, formatEther } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
+import { baseSepolia } from 'viem/chains';
+import { MongoClient } from 'mongodb';
 import dotenv from 'dotenv';
 dotenv.config();
 
