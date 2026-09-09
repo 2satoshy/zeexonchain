@@ -4,7 +4,10 @@ import { baseSepolia } from 'viem/chains';
 import { STOCK_TOKEN_ABI, STOCK_TOKEN_BYTECODE } from './onchain/erc20Artifact';
 import { getMongoCollection } from './db/mongodb';
 
-const privateKey = '0x59b29ff272ed49d1955b972ee2a2fa719d304ec361129ef457e851a51a3dde34';
+import dotenv from 'dotenv';
+dotenv.config();
+
+const privateKey = (process.env.DEPLOYER_PRIVATE_KEY || '0x0000000000000000000000000000000000000000000000000000000000000000') as `0x${string}`;
 const deployerAccount = privateKeyToAccount(privateKey);
 
 const publicClient = createPublicClient({

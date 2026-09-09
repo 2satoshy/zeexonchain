@@ -98,7 +98,7 @@ async function main() {
   const { abi, bytecode } = compileContract();
   console.log(`✅ Compiled! Bytecode length: ${bytecode.length} chars`);
 
-  const privateKey = '0x59b29ff272ed49d1955b972ee2a2fa719d304ec361129ef457e851a51a3dde34';
+  const privateKey = (process.env.DEPLOYER_PRIVATE_KEY || '0x0000000000000000000000000000000000000000000000000000000000000000') as `0x${string}`;
   const deployerAccount = privateKeyToAccount(privateKey);
 
   const publicClient = createPublicClient({

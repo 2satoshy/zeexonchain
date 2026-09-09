@@ -17,15 +17,15 @@
 
 import { createPublicClient, createWalletClient, http, parseEther, formatEther } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { baseSepolia } from 'viem/chains';
-import { MongoClient } from 'mongodb';
+import dotenv from 'dotenv';
+dotenv.config();
 
 // ── Config ────────────────────────────────────────────────────────────────────
 const TARGET_WALLET = (process.argv[2] || '0x71C824aD3Fe479B92c578f142EbF472bC19638A9').toLowerCase() as `0x${string}`;
-const PRIVATE_KEY   = '0x59b29ff272ed49d1955b972ee2a2fa719d304ec361129ef457e851a51a3dde34';
-const MONGODB_URI   = 'mongodb+srv://gugu_db_user:xmOp9kJ6zyIpCZqw@cluster0.g5lfdej.mongodb.net/';
-const MONGODB_DB    = 'zeexonchain';
-const RPC_URL       = 'https://sepolia.base.org';
+const PRIVATE_KEY   = (process.env.DEPLOYER_PRIVATE_KEY || process.env.PRIVATE_KEY || '0x0000000000000000000000000000000000000000000000000000000000000000') as `0x${string}`;
+const MONGODB_URI   = process.env.MONGODB_URI || 'mongodb://localhost:27017';
+const MONGODB_DB    = process.env.MONGODB_DB || 'zeexonchain';
+const RPC_URL       = process.env.BASE_SEPOLIA_RPC || 'https://sepolia.base.org';
 
 // ── Live contract addresses (deployed 2026-09-09) ─────────────────────────────
 const CONTRACTS = {
