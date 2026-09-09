@@ -49,7 +49,7 @@ const ERC20_TRANSFER_ABI = [
     type: 'function',
   },
   {
-    inputs: [{ internalType: 'address', name: '', type: 'address' }],
+    inputs: [{ internalType: 'address', name: 'account', type: 'address' }],
     name: 'balanceOf',
     outputs: [{ internalType: 'uint256', name: '', type: 'uint256' }],
     stateMutability: 'view',
@@ -82,7 +82,7 @@ async function checkDeployerBalance(): Promise<string> {
 }
 
 async function getTokenBalance(contractAddress: `0x${string}`, wallet: `0x${string}`): Promise<string> {
-  const bal = await publicClient.readContract({
+  const bal = await (publicClient as any).readContract({
     address: contractAddress,
     abi: ERC20_TRANSFER_ABI,
     functionName: 'balanceOf',

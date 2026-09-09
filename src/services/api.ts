@@ -450,5 +450,26 @@ export const ApiService = {
       transfers?: any[];
       totalTokensReceived?: number;
     }>(`/airdrop/status?address=${encodeURIComponent(walletAddress)}`);
+  },
+
+  // Base Sepolia Deployed Production Smart Contracts
+  async getOnchainContracts() {
+    return fetchJson<{
+      success: boolean;
+      network: string;
+      chainId: number;
+      explorer: string;
+      count: number;
+      contracts: Record<string, {
+        contractName: string;
+        contractAddress: string;
+        abi: any[];
+        network: string;
+        chainId: number;
+        deployedAt: string;
+        txHash?: string;
+        deployerAddress: string;
+      }>;
+    }>('/onchain-contracts');
   }
 };

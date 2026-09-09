@@ -17,7 +17,9 @@ import rwaRouter from "./server/routes/rwa";
 import airdropRouter from "./server/routes/airdrop";
 import aiAdvisorRouter from "./server/routes/aiAdvisor";
 import zigRouter from "./server/routes/zig";
+import onchainContractsRouter from "./server/routes/onchainContracts";
 import { initTokenDeployment } from "./server/onchain/deploy";
+import { deployAllBaseSepoliaContracts } from "./server/onchain/deployBaseSepolia";
 import { initZigStablecoin } from "./server/onchain/zigStablecoin";
 import { initMongoDatabase, getMongoStatus } from "./server/db/mongodb";
 import { store } from "./server/store";
@@ -74,13 +76,14 @@ app.get("/api/health", async (req, res) => {
       loans: ["GET /api/loans", "POST /api/loans/borrow"],
       wallet: ["GET /api/portfolio", "GET /api/transactions", "POST /api/wallet/deposit", "POST /api/wallet/send", "POST /api/wallet/faucet", "POST /api/wallet/dividends"],
       social: ["GET /api/social/posts", "POST /api/social/posts", "POST /api/social/posts/:id/like"],
-      system: ["GET /api/oracles/rates", "GET /api/seczim/status", "GET /api/zig/reserves", "GET /api/indexer/stats"],
+      system: ["GET /api/oracles/rates", "GET /api/seczim/status", "GET /api/zig/reserves", "GET /api/indexer/stats", "GET /api/onchain-contracts"],
       ai: ["POST /api/ai-advisor", "POST /api/whatsapp/simulate", "GET /api/market-news"]
     }
   });
 });
 
 // Mount modular sub-routers
+app.use("/api/onchain-contracts", onchainContractsRouter);
 app.use("/api/zig", zigRouter);
 app.use("/api/airdrop", airdropRouter);
 app.use("/api/rwa", rwaRouter);
@@ -234,6 +237,7 @@ async function startServer() {
       }
       await initTokenDeployment();
       await initZigStablecoin();
+      await deployAllBaseSepoliaContracts();
     })
     .catch((err) => {
       console.warn("[MongoDB/Deployment] Startup note:", err.message);

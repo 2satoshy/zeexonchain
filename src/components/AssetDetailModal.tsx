@@ -1,16 +1,16 @@
 import React from 'react';
-import { 
-  X, 
-  ArrowRightLeft, 
-  Send, 
-  Plus, 
-  Building2, 
-  ExternalLink, 
-  ShieldCheck, 
-  TrendingUp, 
-  CheckCircle2, 
-  Coins, 
-  DollarSign 
+import {
+  X,
+  ArrowRightLeft,
+  Send,
+  Plus,
+  Building2,
+  ExternalLink,
+  ShieldCheck,
+  TrendingUp,
+  CheckCircle2,
+  Coins,
+  DollarSign
 } from 'lucide-react';
 import { UserAssetItem } from './HomeHeroSwipeCard';
 import { TabType, SMEStock, TokenAsset } from '../types';
@@ -47,7 +47,7 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
   // Check if asset matches an SME stock
   const matchedStock = stocks.find(
     s => s.ticker.toUpperCase() === asset.symbol.toUpperCase() ||
-         s.name.toLowerCase() === asset.name.toLowerCase()
+      s.name.toLowerCase() === asset.name.toLowerCase()
   );
 
   // Find matching token asset for contract address / decimals
@@ -55,11 +55,11 @@ export const AssetDetailModal: React.FC<AssetDetailModalProps> = ({
   const contractAddress = matchedToken?.address || (matchedStock?.tokenAddress);
 
   return (
-    <div 
+    <div
       className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fade-in"
       onClick={onClose}
     >
-      <div 
+      <div
         className="bg-slate-900 border border-slate-700/80 rounded-3xl p-6 max-w-lg w-full text-white shadow-2xl space-y-6 relative overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >

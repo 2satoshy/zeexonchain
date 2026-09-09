@@ -36,6 +36,13 @@ export const ApiExplorerModal: React.FC<ApiExplorerModalProps> = ({ isOpen, onCl
     {
       category: 'System & Oracles',
       method: 'GET',
+      path: '/api/onchain-contracts',
+      description: 'Live deployed Base Sepolia production smart contract addresses & ABIs (InvoiceNFT, CreditVault, Airdrop, RWA Factory)',
+      action: () => ApiService.getOnchainContracts()
+    },
+    {
+      category: 'System & Oracles',
+      method: 'GET',
       path: '/api/seczim/status',
       description: 'SECZim regulatory compliance status, legal custodian, and trust certificates',
       action: () => ApiService.getSecZimStatus()
