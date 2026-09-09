@@ -82,6 +82,7 @@ export const HomeHeroSwipeCard: React.FC<HomeHeroSwipeCardProps> = ({
   onOpenSend,
   onOpenSwap,
   onOpenTokenize,
+  onSelectStock,
 }) => {
   // Card 0: Overview & Quick Actions, Card 1: All Asset Balances
   const [activeCardIndex, setActiveCardIndex] = useState<0 | 1>(0);
