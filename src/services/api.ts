@@ -30,6 +30,27 @@ export const ApiService = {
   },
 
   // User Auth, Profiles & Activity Logs
+  async verifyAuth(params: {
+    address: string;
+    authProvider?: string;
+    email?: string;
+    phoneNumber?: string;
+    message?: string;
+    signature?: string;
+  }) {
+    return fetchJson<{
+      ok: boolean;
+      address: string;
+      user: UserProfile;
+      token: string;
+      airdrop: any;
+      message: string;
+    }>('/auth/verify', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
+
   async getUserProfile(address: string) {
     return fetchJson<{ success: boolean; data: { user: UserProfile; portfolio: UserPortfolio; recentActivity: UserActivityLog[] } }>(`/auth/me?address=${encodeURIComponent(address)}`);
   },

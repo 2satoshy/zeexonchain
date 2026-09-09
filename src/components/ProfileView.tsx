@@ -5,6 +5,8 @@ import { CoinbaseWalletSection } from './CoinbaseWalletSection';
 import { PaginationBar } from './PaginationBar';
 import { SwipeableContainer } from './SwipeableContainer';
 import { BlockchainIndexerHistory } from './BlockchainIndexerHistory';
+import { useCurrentUser, useEvmAddress } from '@coinbase/cdp-hooks';
+import { useAccount } from 'wagmi';
 
 interface ProfileViewProps {
   transactions: Transaction[];
@@ -33,6 +35,24 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
   onOpenTokenize,
   onOpenConnectWallet
 }) => {
+  const { currentUser } = useCurrentUser();
+  const { evmAddress } = useEvmAddress();
+  const { address: wagmiAddress, connector } = useAccount();
+
+  const activeAddress = wagmiAddress || evmAddress || currentUser?.evmAccountObjects?.[0]?.address;
+  const isCoinbase = Boolean(evmAddress || currentUser || connector?.name?.toLowerCase().includes('coinbase'));
+
+  const cdpEmail = currentUser?.authenticationMethods?.email?.email;
+  const cdpPhone = currentUser?.authenticationMethods?.sms?.phoneNumber;
+
+  const derivedName = cdpEmail 
+    ? cdpEmail.split('@')[0].replace('.', ' ').toUpperCase()
+    : (activeAddress ? `Coinbase Account (${activeAddress.slice(0, 6)}...${activeAddress.slice(-4)})` : 'Tendai Moyo');
+
+  const derivedEmail = cdpEmail || (activeAddress ? `${activeAddress.slice(0, 10)}...@coinbase.eth` : 'tendai.moyo@zeex.co.zw');
+  const derivedPhone = cdpPhone || '+263 77 988 4912';
+  const avatarInitials = cdpEmail ? cdpEmail.slice(0, 2).toUpperCase() : (activeAddress ? 'CB' : 'TM');
+
   const [currentPage, setCurrentPage] = useState<number>(1);
   const totalPages = 5;
 
@@ -52,12 +72,18 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
     if (currentPage > 1) setCurrentPage(prev => prev - 1);
   };
 
-
-  const [name, setName] = useState('Tendai Moyo');
-  const [email, setEmail] = useState('tendai.moyo@zeex.co.zw');
-  const [phone, setPhone] = useState('+263 77 988 4912');
+  const [name, setName] = useState(derivedName);
+  const [email, setEmail] = useState(derivedEmail);
+  const [phone, setPhone] = useState(derivedPhone);
   const [bio, setBio] = useState('ZSE SME Investor & Diaspora Onchain Capitalist. Backing Zimbabwean growth.');
   const [savedMsg, setSavedMsg] = useState<string | null>(null);
+
+  // Sync state if active user changes
+  React.useEffect(() => {
+    setName(derivedName);
+    setEmail(derivedEmail);
+    setPhone(derivedPhone);
+  }, [derivedName, derivedEmail, derivedPhone]);
 
   const [kycStatus] = useState<'Verified' | 'Pending Review'>('Verified');
   const [kycFile] = useState<string | null>(null);
@@ -120,7 +146,7 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
           <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 w-full md:w-auto">
             <div className="relative shrink-0">
               <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white font-bold text-xl sm:text-2xl shadow-md border-2 border-white/20">
-                TM
+                {avatarInitials}
               </div>
               <span className="absolute bottom-0 right-0 w-4 h-4 sm:w-5 sm:h-5 bg-emerald-500 border-2 border-slate-900 rounded-full flex items-center justify-center text-[9px]">✓</span>
             </div>
@@ -130,19 +156,29 @@ export const ProfileView: React.FC<ProfileViewProps> = ({
                 <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 whitespace-nowrap">
                   {kycStatus} • Tier 2
                 </span>
+                {isCoinbase && (
+                  <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-blue-500/30 text-blue-300 border border-blue-400/40 whitespace-nowrap flex items-center gap-1">
+                    <span>🔷 Coinbase Connected</span>
+                  </span>
+                )}
               </div>
               <p className="text-xs text-slate-300 mt-1 line-clamp-2">{bio}</p>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-2 text-[11px] text-slate-400">
                 <span>📧 {email}</span>
                 <span>📱 {phone}</span>
                 <span>🇿🇼 Harare</span>
+                {activeAddress && (
+                  <span className="font-mono text-[10px] bg-slate-800 text-slate-300 px-2 py-0.5 rounded-lg border border-slate-700">
+                    {activeAddress.slice(0, 8)}...{activeAddress.slice(-6)}
+                  </span>
+                )}
               </div>
             </div>
           </div>
 
           <div className="bg-slate-800/95 border border-slate-700/80 p-3.5 sm:p-4 rounded-2xl w-full md:w-auto md:min-w-[200px] shrink-0 text-left md:text-right">
             <div className="text-[11px] text-slate-400">Portfolio Net Worth</div>
-            <div className="text-lg sm:text-xl font-extrabold text-white mt-0.5">${totalBalanceUSD.toLocaleString()}</div>
+            <div className="text-lg sm:text-xl font-extrabold text-white mt-0.5">${totalBalanceUSD.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
             <div className="text-[10px] text-emerald-400 font-medium mt-0.5">ZIG {zigBalance.toLocaleString()}</div>
           </div>
         </div>

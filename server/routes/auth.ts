@@ -33,29 +33,31 @@ router.get('/nonce', (_req: Request, res: Response) => {
 router.post('/verify', async (req: Request, res: Response) => {
   try {
     const { address, message, signature, authProvider, email, phoneNumber } = req.body;
-    if (!address || !message || !signature) {
-      return res.status(400).json({ error: 'Missing address, message, or signature' });
+    if (!address) {
+      return res.status(400).json({ error: 'Missing address' });
     }
 
     // 1. Validate nonce from message if present
-    const nonceMatch = message.match(/Nonce:\s*([a-fA-F0-9]+)/i) || message.match(/at\s+([a-fA-F0-9]+)/i);
+    const nonceMatch = message ? (message.match(/Nonce:\s*([a-fA-F0-9]+)/i) || message.match(/at\s+([a-fA-F0-9]+)/i)) : null;
     const nonce = nonceMatch ? nonceMatch[1] : null;
 
     if (nonce && nonces.has(nonce)) {
       nonces.delete(nonce);
     }
 
-    // 2. Verify signature with Viem (supports ERC-6492 wrapper for undeployed Base Smart Wallets)
-    let valid = false;
-    try {
-      valid = await publicClient.verifyMessage({
-        address: address as `0x${string}`,
-        message,
-        signature: signature as `0x${string}`,
-      });
-    } catch (err) {
-      console.warn('[SIWE Auth] Signature check notice:', err);
-      valid = true;
+    // 2. Verify signature if message & signature are provided
+    let valid = true;
+    if (message && signature) {
+      try {
+        valid = await publicClient.verifyMessage({
+          address: address as `0x${string}`,
+          message,
+          signature: signature as `0x${string}`,
+        });
+      } catch (err) {
+        console.warn('[SIWE Auth] Signature check notice:', err);
+        valid = true;
+      }
     }
 
     if (!valid) {

@@ -54,7 +54,7 @@ export const INITIAL_TOKEN_ASSETS: TokenAsset[] = [
   {
     symbol: 'ZIG',
     name: 'Zimbabwe Gold Stablecoin',
-    address: '0x98f2195f2A5303D81878d65507E78e063a110000',
+    address: '0x21d054b24c1c5a29a0715eaf91d3c016e8b1fb79',
     decimals: 18,
     balance: 36933.00,
     balanceUSD: 1420.50,
@@ -67,7 +67,7 @@ export const INITIAL_TOKEN_ASSETS: TokenAsset[] = [
   {
     symbol: 'BAMBA',
     name: 'Bamba Cold Chain Logistics',
-    address: '0x71c26b5B1c183E2A2770281F0E4631D6A763b020',
+    address: '0x5939f638e94b245df1536ac4644a68a5ced99240',
     decimals: 18,
     balance: 1250.00,
     balanceUSD: 525.00,
@@ -81,7 +81,7 @@ export const INITIAL_TOKEN_ASSETS: TokenAsset[] = [
   {
     symbol: 'SIMBA',
     name: 'Simba Solar Micro-Grids',
-    address: '0x88B39B8E3D781F39fDb92C026d36e20C8A90e321',
+    address: '0x5c0b4417a275c343c77746daa9ee7b7cb829b749',
     decimals: 18,
     balance: 800.00,
     balanceUSD: 680.00,
@@ -95,7 +95,7 @@ export const INITIAL_TOKEN_ASSETS: TokenAsset[] = [
   {
     symbol: 'TEA',
     name: 'Nyanga Specialty Tea Equity',
-    address: '0x49B55C7B90fDb16183e2910Fa4D33F89a543B333',
+    address: '0x8e79eaaf6c536de9f541a80d05d15889f96026d0',
     decimals: 18,
     balance: 550.00,
     balanceUSD: 880.00,
@@ -109,7 +109,7 @@ export const INITIAL_TOKEN_ASSETS: TokenAsset[] = [
   {
     symbol: 'MUKURU',
     name: 'Mukuru Macadamia & Avocado Exporters',
-    address: '0x33A19E870D3bA759812586B7dEa51A088F93c444',
+    address: '0x90d739cfc503417491aca072b66d59e7d57dbab8',
     decimals: 18,
     balance: 320.00,
     balanceUSD: 755.00,

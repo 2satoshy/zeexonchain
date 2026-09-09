@@ -251,6 +251,13 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({
       setIsEmailVerifying(true);
       setEmailError(null);
       await verifyEmailOTP({ flowId: emailFlowId, otp: emailOtp });
+      if (activeAddress) {
+        ApiService.verifyAuth({
+          address: activeAddress,
+          authProvider: 'COINBASE_EMAIL',
+          email,
+        }).catch((err) => console.warn('Coinbase email auth sync note:', err));
+      }
       setConnectionMessage('Successfully authenticated with Coinbase via Email!');
       setTimeout(() => {
         onClose();
@@ -292,6 +299,13 @@ export const ConnectWalletModal: React.FC<ConnectWalletModalProps> = ({
       setIsSmsVerifying(true);
       setSmsError(null);
       await verifySmsOTP({ flowId: smsFlowId, otp: smsOtp });
+      if (activeAddress) {
+        ApiService.verifyAuth({
+          address: activeAddress,
+          authProvider: 'COINBASE_SMS',
+          phoneNumber: phone,
+        }).catch((err) => console.warn('Coinbase SMS auth sync note:', err));
+      }
       setConnectionMessage('Successfully authenticated with Coinbase via SMS!');
       setTimeout(() => {
         onClose();

@@ -320,7 +320,8 @@ export interface SupplyOperationRecord {
 }
 
 // Fixed contract address on Base Sepolia for ZIG stablecoin
-export const DEFAULT_ZIG_CONTRACT_ADDRESS = '0x98f2195f2A5303D81878d65507E78e063a110000';
+// Live deployed on Base Sepolia: https://sepolia.basescan.org/token/0x8d739755de949057d9d001b759b6ec1d2603ca1f
+export const DEFAULT_ZIG_CONTRACT_ADDRESS = '0x8d739755de949057d9d001b759b6ec1d2603ca1f';
 
 // In-memory supply operations log for reconciliation
 const supplyOperationsLog: SupplyOperationRecord[] = [

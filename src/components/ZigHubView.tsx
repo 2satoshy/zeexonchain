@@ -70,7 +70,7 @@ export const ZigHubView: React.FC<ZigHubViewProps> = ({
   const [copiedAddr, setCopiedAddr] = useState(false);
 
   const exchangeRate = 26.00; // 1 USD = 26.00 ZIG ($0.03846 per ZIG)
-  const defaultContract = '0x98f2195f2A5303D81878d65507E78e063a110000';
+  const defaultContract = '0x8d739755de949057d9d001b759b6ec1d2603ca1f'; // Live: https://sepolia.basescan.org/token/0x8d739755de949057d9d001b759b6ec1d2603ca1f
 
   // Load token data & supply operations
   const loadTokenData = useCallback(async () => {

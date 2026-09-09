@@ -68,31 +68,31 @@ export const walletClient = createWalletClient({
   transport: http('https://sepolia.base.org'),
 });
 
-// Default stock definitions (1,000,000 stock tokens each)
+// Default stock definitions with LIVE deployed addresses on Base Sepolia
 export const STOCKS_TO_DEPLOY = [
   {
     symbol: 'BAMBA',
     name: 'Bamba Cold Chain Logistics',
     stockTicker: 'BAMBA',
-    fallbackAddress: '0x71c26b5B1c183E2A2770281F0E4631D6A763b020',
+    fallbackAddress: '0x2df0bb4196764784a8574867296398d1b22b1f56', // https://sepolia.basescan.org/token/0x2df0bb4196764784a8574867296398d1b22b1f56
   },
   {
     symbol: 'SIMBA',
     name: 'Simba Solar Micro-Grids',
     stockTicker: 'SIMBA',
-    fallbackAddress: '0x88B39B8E3D781F39fDb92C026d36e20C8A90e321',
+    fallbackAddress: '0x0616a5a9395555a48a7deda508cabeb0102e2ed5', // https://sepolia.basescan.org/token/0x0616a5a9395555a48a7deda508cabeb0102e2ed5
   },
   {
     symbol: 'TEA',
     name: 'Nyanga Specialty Tea Equity',
     stockTicker: 'NYTEA',
-    fallbackAddress: '0x49B55C7B90fDb16183e2910Fa4D33F89a543B333',
+    fallbackAddress: '0x4355ea3aa385bd51c41acc0651aa89a13f1518a0', // https://sepolia.basescan.org/token/0x4355ea3aa385bd51c41acc0651aa89a13f1518a0
   },
   {
     symbol: 'MUKURU',
     name: 'Mukuru Macadamia & Avocado Exporters',
     stockTicker: 'MUKURU',
-    fallbackAddress: '0x33A19E870D3bA759812586B7dEa51A088F93c444',
+    fallbackAddress: '0x35474cd7bae54be6d59ebfc6b4d48288c40fe320', // https://sepolia.basescan.org/token/0x35474cd7bae54be6d59ebfc6b4d48288c40fe320
   },
 ];
 
