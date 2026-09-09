@@ -471,5 +471,107 @@ export const ApiService = {
         deployerAddress: string;
       }>;
     }>('/onchain-contracts');
+  },
+
+  // Unified Working Capital Hub (AI Underwriting, Revolving Credit, Loan RFQ)
+  async underwriteWorkingCapital(params: {
+    address: string;
+    financialReportText?: string;
+    annualRevenue?: number;
+    cashFlowMonthly?: number;
+  }) {
+    return fetchJson<{
+      success: boolean;
+      facility: {
+        borrower: string;
+        creditLimitUSD: number;
+        drawnAmountUSD: number;
+        interestRateBps: number;
+        creditScore: number;
+        lastDrawTimestamp: number;
+        isActive: boolean;
+        underwritingSummary?: string;
+        riskCategory?: 'LOW' | 'MEDIUM' | 'HIGH';
+      };
+    }>('/working-capital/underwrite', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async getWorkingCapitalFacility(address: string) {
+    return fetchJson<{
+      success: boolean;
+      facility: {
+        borrower: string;
+        creditLimitUSD: number;
+        drawnAmountUSD: number;
+        interestRateBps: number;
+        creditScore: number;
+        lastDrawTimestamp: number;
+        isActive: boolean;
+        underwritingSummary?: string;
+        riskCategory?: 'LOW' | 'MEDIUM' | 'HIGH';
+      };
+    }>(`/working-capital/facility?address=${encodeURIComponent(address)}`);
+  },
+
+  async drawWorkingCapital(address: string, amountUSD: number) {
+    return fetchJson<{ success: boolean; facility: any; drawnAmountUSD: number }>('/working-capital/draw', {
+      method: 'POST',
+      body: JSON.stringify({ address, amountUSD }),
+    });
+  },
+
+  async repayWorkingCapital(address: string, amountUSD: number) {
+    return fetchJson<{ success: boolean; facility: any; repaidAmountUSD: number }>('/working-capital/repay', {
+      method: 'POST',
+      body: JSON.stringify({ address, amountUSD }),
+    });
+  },
+
+  async getLoanRfqs() {
+    return fetchJson<{
+      success: boolean;
+      rfqs: Array<{
+        rfqId: number;
+        borrower: string;
+        requestedAmountUSD: number;
+        durationDays: number;
+        businessPurpose: string;
+        isOpen: boolean;
+        winningBidId: number | null;
+        createdAt: string;
+      }>;
+      bids: Record<number, Array<{
+        bidId: number;
+        rfqId: number;
+        lenderVenue: string;
+        venueName: string;
+        proposedInterestBps: number;
+        maxAmountUSD: number;
+        isAccepted: boolean;
+        estApprovalTime: string;
+      }>>;
+    }>('/working-capital/rfq/list');
+  },
+
+  async createLoanRfq(params: {
+    address: string;
+    amountUSD: number;
+    durationDays: number;
+    businessPurpose: string;
+  }) {
+    return fetchJson<{ success: boolean; rfq: any; bids: any[] }>('/working-capital/rfq/create', {
+      method: 'POST',
+      body: JSON.stringify(params),
+    });
+  },
+
+  async acceptRfqBid(address: string, rfqId: number, bidId: number) {
+    return fetchJson<{ success: boolean; rfq: any; winningBid: any; facility: any }>('/working-capital/rfq/accept', {
+      method: 'POST',
+      body: JSON.stringify({ address, rfqId, bidId }),
+    });
   }
 };

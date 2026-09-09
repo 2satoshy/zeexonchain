@@ -13,6 +13,7 @@ export interface ContractArtifacts {
   AirdropDistributor: CompiledContract;
   RWAToken: CompiledContract;
   RWATokenFactory: CompiledContract;
+  RevolvingCreditVault: CompiledContract;
 }
 
 const CONTRACTS_DIR = path.join(process.cwd(), 'server', 'contracts');
@@ -34,6 +35,7 @@ export function compileAllContracts(): ContractArtifacts {
     'AirdropDistributor.sol': { content: readContractSource('AirdropDistributor.sol') },
     'RWAToken.sol': { content: readContractSource('RWAToken.sol') },
     'RWATokenFactory.sol': { content: readContractSource('RWATokenFactory.sol') },
+    'RevolvingCreditVault.sol': { content: readContractSource('RevolvingCreditVault.sol') },
   };
 
   const input = {
@@ -79,6 +81,7 @@ export function compileAllContracts(): ContractArtifacts {
     AirdropDistributor: getContract('AirdropDistributor.sol', 'AirdropDistributor'),
     RWAToken: getContract('RWAToken.sol', 'RWAToken'),
     RWATokenFactory: getContract('RWATokenFactory.sol', 'RWATokenFactory'),
+    RevolvingCreditVault: getContract('RevolvingCreditVault.sol', 'RevolvingCreditVault'),
   };
 
   console.log('[Compiler] Successfully compiled all 5 Solidity contracts!');

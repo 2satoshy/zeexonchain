@@ -16,6 +16,7 @@ import authRouter from "./server/routes/auth";
 import rwaRouter from "./server/routes/rwa";
 import airdropRouter from "./server/routes/airdrop";
 import aiAdvisorRouter from "./server/routes/aiAdvisor";
+import workingCapitalRouter from "./server/routes/workingCapital";
 import zigRouter from "./server/routes/zig";
 import onchainContractsRouter from "./server/routes/onchainContracts";
 import { initTokenDeployment } from "./server/onchain/deploy";
@@ -106,6 +107,9 @@ app.use("/api", systemRouter);
 
 // AI Advisor & Autonomous Copilot Broker for ZEEX Onchain insights & trade execution
 app.use("/api/ai-advisor", aiAdvisorRouter);
+
+// Unified Onchain Working Capital Hub (AI Underwriting, Revolving Credit, RFQ)
+app.use("/api/working-capital", workingCapitalRouter);
 
 // WhatsApp Bot command simulation endpoint
 app.post("/api/whatsapp/simulate", async (req, res) => {

@@ -19,17 +19,19 @@
 
 - [Overview & Problem Statement](#-overview--problem-statement)
 - [Key Features & Modules](#-key-features--modules)
-  - [1. 🚀 Deployed Tokenized B20 Stocks & 100-Stock First-Sign-In Airdrop](#1--deployed-tokenized-b20-stocks--100-stock-first-sign-in-airdrop)
-  - [2. 🏛️ Base RWA Asset Tokenization & Distributions Engine](#2-️-base-rwa-asset-tokenization--distributions-engine)
-  - [3. 💳 Base Pay Modal & Sponsored Gas Paymaster](#3--base-pay-modal--sponsored-gas-paymaster)
-  - [4. 🔑 Base Account SIWE Auth & Isolated User Profiles](#4--base-account-siwe-auth--isolated-user-profiles)
-  - [5. 🍃 MongoDB Dual-Mode Persistence & Sync Engine](#5--mongodb-dual-mode-persistence--sync-engine)
-  - [6. ⚖️ Real Onchain Balance Resolver (RPC vs Demo)](#6-️-real-onchain-balance-resolver-rpc-vs-demo)
-  - [7. 📈 SME Equity Tokenization & Corporate Actions](#7--sme-equity-tokenization--corporate-actions)
-  - [8. 🔄 Hybrid DEX & AMM Orderbook](#8--hybrid-dex--amm-orderbook)
-  - [9. 📑 InvoiceX Working Capital Factoring](#9--invoicex-working-capital-factoring)
-  - [10. 🏦 DebtBridge Collateralized Credit Lines (SBLOC)](#10--debtbridge-collateralized-credit-lines-sbloc)
-  - [11. 💬 WhatsApp Conversational Banking & Gemini AI Advisor](#11--whatsapp-conversational-banking--gemini-ai-advisor)
+  - [1. ⚡ Unified Onchain Working Capital Vault & AI Credit Underwriter](#1--unified-onchain-working-capital-vault--ai-credit-underwriter)
+  - [2. 🎯 Multi-Lender Loan RFQ & Yield Aggregator](#2--multi-lender-loan-rfq--yield-aggregator)
+  - [3. 🚀 Deployed Tokenized B20 Stocks & 100-Stock First-Sign-In Airdrop](#3--deployed-tokenized-b20-stocks--100-stock-first-sign-in-airdrop)
+  - [4. 🏛️ Base RWA Asset Tokenization & Distributions Engine](#4-️-base-rwa-asset-tokenization--distributions-engine)
+  - [5. 💳 Base Pay Modal & Sponsored Gas Paymaster](#5--base-pay-modal--sponsored-gas-paymaster)
+  - [6. 🔑 Base Account SIWE Auth & Isolated User Profiles](#6--base-account-siwe-auth--isolated-user-profiles)
+  - [7. 🍃 MongoDB Dual-Mode Persistence & Sync Engine](#7--mongodb-dual-mode-persistence--sync-engine)
+  - [8. ⚖️ Real Onchain Balance Resolver (RPC vs Demo)](#8-️-real-onchain-balance-resolver-rpc-vs-demo)
+  - [9. 📈 SME Equity Tokenization & Corporate Actions](#9--sme-equity-tokenization--corporate-actions)
+  - [10. 🔄 Hybrid DEX & AMM Orderbook](#10--hybrid-dex--amm-orderbook)
+  - [11. 📑 InvoiceX Working Capital Factoring](#11--invoicex-working-capital-factoring)
+  - [12. 🏦 DebtBridge Collateralized Credit Lines (SBLOC)](#12--debtbridge-collateralized-credit-lines-sbloc)
+  - [13. 💬 WhatsApp Conversational Banking & Gemini AI Advisor](#13--whatsapp-conversational-banking--gemini-ai-advisor)
 - [System Architecture](#-system-architecture)
 - [Smart Contract & Compliance Framework](#-smart-contract--compliance-framework)
 - [Interactive REST API Endpoints](#-interactive-rest-api-endpoints)
@@ -63,7 +65,17 @@ Small and Medium Enterprises (SMEs) across Zimbabwe and sub-Saharan Africa gener
 
 ## ⚡ Key Features & Modules
 
-### 1. 🚀 Deployed Tokenized B20 Stocks & 100-Stock First-Sign-In Airdrop
+### 1. ⚡ Unified Onchain Working Capital Vault & AI Credit Underwriter
+- **`RevolvingCreditVault.sol` Smart Contract:** On-chain credit line facility contract deployed on Base Sepolia (`0x99a6c71c49df16a7f805be4343118cf94ce1e22b`) for undercollateralized business credit lines and flexible drawdowns.
+- **Gemini AI Financial Statement Underwriter:** Express route (`POST /api/working-capital/underwrite`) leverages Gemini 2.5 Flash to scan corporate P&L statements, calculate credit scores (300-850), and assign approved revolving credit limits.
+- **Instant Payroll & Capital Draws:** 1-click drawdown and repayment controls with real-time utilization meter and APY rate calculation.
+
+### 2. 🎯 Multi-Lender Loan RFQ & Yield Aggregator
+- **On-Chain RFQ Broadcast:** Post corporate working capital requests (`POST /api/working-capital/rfq/create`) specifying loan amount, duration, and business purpose.
+- **Multi-Venue Competitive Bidding:** Automated quote aggregation across competing liquidity venues (**InvoiceX Vault Pool**, **ZSE Institutional Credit Fund**, **P2P Yield Syndicate**).
+- **Instant Settlement & Rate Upgrade:** 1-click quote acceptance (`POST /api/working-capital/rfq/accept`) updates the borrower's revolving credit vault parameters on Base L2.
+
+### 3. 🚀 Deployed Tokenized B20 Stocks & 100-Stock First-Sign-In Airdrop
 - **Base Sepolia Deployed Contracts:** Real standard ERC-20 stock token contracts deployed on Base Sepolia (Chain ID `84532`) with 1,000,000 fixed initial supply each:
   - `BAMBA` — Bamba Cold Chain Logistics
   - `SIMBA` — Simba Solar Micro-Grids
@@ -148,7 +160,18 @@ Small and Medium Enterprises (SMEs) across Zimbabwe and sub-Saharan Africa gener
 
 ## 🔌 Interactive REST API Endpoints
 
-### 1. Stock Airdrop & Onchain Deployment
+### 1. Working Capital Vault & AI Underwriting
+| Method | Endpoint | Description |
+| :--- | :--- | :--- |
+| `POST` | `/api/working-capital/underwrite` | AI financial filings analysis using Gemini 2.5 Flash to assign credit limits & risk scores |
+| `GET` | `/api/working-capital/facility` | Retrieve active revolving line balance, drawn amount, and credit ceiling |
+| `POST` | `/api/working-capital/draw` | Draw funds on-demand for working capital/payroll from revolving vault |
+| `POST` | `/api/working-capital/repay` | Repay drawn credit balance and reinstate revolving limit |
+| `GET` | `/api/working-capital/rfq/list` | Retrieve active loan RFQs and multi-lender competing venue quotes |
+| `POST` | `/api/working-capital/rfq/create` | Broadcast loan RFQ for multi-lender rate competition |
+| `POST` | `/api/working-capital/rfq/accept` | Accept winning lender quote and upgrade revolving credit terms |
+
+### 2. Stock Airdrop & Onchain Deployment
 | Method | Endpoint | Description |
 | :--- | :--- | :--- |
 | `POST` | `/api/airdrop/claim` | Claim 100 stock tokens per company (400 total) for a wallet on Base Sepolia |
@@ -210,13 +233,19 @@ Small and Medium Enterprises (SMEs) across Zimbabwe and sub-Saharan Africa gener
 ```
 .
 ├── server/                      # Server-side API & state management
+│   ├── contracts/               # Solidity smart contracts
+│   │   ├── RevolvingCreditVault.sol # Revolving credit line & RFQ loan vault contract
+│   │   ├── InvoiceCreditVault.sol   # Invoice factoring vault
+│   │   └── RWAToken.sol             # Permissioned RWA asset contract
 │   ├── db/                      # Database module
 │   │   └── mongodb.ts           # MongoDB connection pooling & index manager
 │   ├── onchain/                 # Onchain deployment & airdrop modules
+│   │   ├── contractsCompiler.ts # Solc compilation engine for Solidity contracts
+│   │   ├── deployBaseSepolia.ts # Base Sepolia deployment manager
 │   │   ├── erc20Artifact.ts     # ERC-20 contract ABI & bytecode
-│   │   ├── deploy.ts            # Base Sepolia stock token deployer module
 │   │   └── airdrop.ts           # 100 stock token per company airdrop service
 │   ├── routes/                  # Express sub-routers
+│   │   ├── workingCapital.ts    # AI credit underwriting, revolving line, RFQ aggregator
 │   │   ├── airdrop.ts           # Stock token airdrop endpoints
 │   │   ├── auth.ts              # Base Account SIWE authentication & user profiles
 │   │   ├── basePay.ts           # Base Pay transaction record & verification
@@ -232,6 +261,7 @@ Small and Medium Enterprises (SMEs) across Zimbabwe and sub-Saharan Africa gener
 │   └── store.ts                 # ACID transactional store & MongoDB sync engine
 ├── src/                         # Client-side React 19 application
 │   ├── components/              # UI views & modals
+│   │   ├── WorkingCapitalHubView.tsx # Unified Working Capital Vault (AI Underwriting, Line, RFQ)
 │   │   ├── BasePayModal.tsx     # 1-click Base Pay checkout modal
 │   │   ├── AiAdvisorView.tsx    # Gemini AI financial advisor
 │   │   ├── ApiExplorerModal.tsx # Interactive API Console

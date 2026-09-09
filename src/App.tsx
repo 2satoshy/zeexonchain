@@ -11,6 +11,7 @@ import { DashboardView } from './components/DashboardView';
 import { SharesView } from './components/SharesView';
 import { InvoiceXView } from './components/InvoiceXView';
 import { DebtBridgeView } from './components/DebtBridgeView';
+import { WorkingCapitalHubView } from './components/WorkingCapitalHubView';
 import { ZigHubView } from './components/ZigHubView';
 import { WhatsAppWalletView } from './components/WhatsAppWalletView';
 import { AiAdvisorView } from './components/AiAdvisorView';
@@ -801,6 +802,12 @@ export default function App() {
             loans={loans} 
             onRequestLoan={handleRequestLoan} 
           />
+        )}
+
+        {activeTab === 'workingCapital' && (
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+            <WorkingCapitalHubView userAddress={activeAddress || '0x71C7656EC7ab88b098defB751B7401B5f6d8976F'} />
+          </div>
         )}
 
         {activeTab === 'zig' && (

@@ -1,5 +1,5 @@
 import React from 'react';
-import { LayoutDashboard, PieChart, FileText, Landmark, Coins, Smartphone, Sparkles, Building2, ArrowRightLeft } from 'lucide-react';
+import { LayoutDashboard, PieChart, FileText, Landmark, Coins, Smartphone, Sparkles, Building2, ArrowRightLeft, Zap } from 'lucide-react';
 import { TabType } from '../types';
 
 interface NavigationProps {
@@ -15,6 +15,7 @@ export const Navigation: React.FC<NavigationProps> = ({ activeTab, setActiveTab 
     { id: 'startupListing', label: 'Startup Listing & RWA', icon: Building2 },
     { id: 'invoiceX', label: 'InvoiceX', icon: FileText },
     { id: 'debtBridge', label: 'DebtBridge', icon: Landmark },
+    { id: 'workingCapital', label: 'Working Capital Vault', icon: Zap },
     { id: 'zig', label: '$ZIG Hub', icon: Coins },
     { id: 'whatsapp', label: 'WhatsApp Pay', icon: Smartphone },
     { id: 'aiAdvisor', label: 'ZEEX AI Copilot', icon: Sparkles },

@@ -26,6 +26,7 @@ const FALLBACK_ADDRESSES: Record<string, string> = {
   AirdropDistributor: '0x4e6e661649df16a7f805be4343118cf94ce1e00a',
   RWAToken: '0x5b38da6a701c568545dcfcb03fcb875f56beddc4',
   RWATokenFactory: '0x2a2a02ec1d4d42b47f70b4a45a165b4c106411d9',
+  RevolvingCreditVault: '0x99a6c71c49df16a7f805be4343118cf94ce1e22b',
 };
 
 export const publicClient = createPublicClient({
@@ -64,6 +65,7 @@ export async function deployAllBaseSepoliaContracts(): Promise<Record<string, De
     'AirdropDistributor',
     'RWAToken',
     'RWATokenFactory',
+    'RevolvingCreditVault',
   ];
 
   for (const name of contractOrder) {
@@ -101,6 +103,9 @@ export async function deployAllBaseSepoliaContracts(): Promise<Record<string, De
           const invoiceNftAddr = deployedRecords['InvoiceNFT']?.contractAddress || FALLBACK_ADDRESSES['InvoiceNFT'];
           const mockStablecoinAddr = '0x2df0bb4196764784a8574867296398d1b22b1f56'; // BAMBA / ZIG Stablecoin address on testnet
           constructorArgs = [invoiceNftAddr, mockStablecoinAddr];
+        } else if (name === 'RevolvingCreditVault') {
+          const mockStablecoinAddr = '0x2df0bb4196764784a8574867296398d1b22b1f56';
+          constructorArgs = [mockStablecoinAddr];
         } else if (name === 'AirdropDistributor') {
           const mockTokenAddr = '0x2df0bb4196764784a8574867296398d1b22b1f56';
           const mockMerkleRoot = '0x0000000000000000000000000000000000000000000000000000000000000000';

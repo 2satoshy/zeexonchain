@@ -1,4 +1,4 @@
-export type TabType = 'dashboard' | 'shares' | 'trading' | 'startupListing' | 'invoiceX' | 'debtBridge' | 'zig' | 'whatsapp' | 'aiAdvisor' | 'social' | 'profile';
+export type TabType = 'dashboard' | 'shares' | 'trading' | 'startupListing' | 'invoiceX' | 'debtBridge' | 'workingCapital' | 'zig' | 'whatsapp' | 'aiAdvisor' | 'social' | 'profile';
 
 export type CurrencyMode = 'USD' | 'ZIG';
 
