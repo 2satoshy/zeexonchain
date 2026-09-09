@@ -29,15 +29,22 @@ import { useCurrency } from '../context/CurrencyContext';
 interface SharesViewProps {
   stocks: SMEStock[];
   onBuyShares: (stock: SMEStock, usdAmount: number, units: number) => void;
+  initialStock?: SMEStock | null;
 }
 
-export const SharesView: React.FC<SharesViewProps> = ({ stocks, onBuyShares }) => {
+export const SharesView: React.FC<SharesViewProps> = ({ stocks, onBuyShares, initialStock }) => {
   const { currencyMode, formatStockPrice, formatAmount, oracleRate } = useCurrency();
   // Mode: summarized Table or Grid Cards
   const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
   
   // When a user clicks a stock, this opens the full individual listing view
-  const [activeDetailedStock, setActiveDetailedStock] = useState<SMEStock | null>(null);
+  const [activeDetailedStock, setActiveDetailedStock] = useState<SMEStock | null>(initialStock || null);
+
+  useEffect(() => {
+    if (initialStock) {
+      setActiveDetailedStock(initialStock);
+    }
+  }, [initialStock]);
 
   // Search & Filters for Grid mode
   const [searchQuery, setSearchQuery] = useState('');

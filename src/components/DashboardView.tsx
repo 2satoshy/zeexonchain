@@ -20,6 +20,7 @@ interface DashboardViewProps {
   onOpenSwap?: () => void;
   onOpenTokenize?: () => void;
   onOpenCopilot?: (prompt?: string) => void;
+  onSelectStock?: (stock: SMEStock) => void;
 }
 
 export const DashboardView: React.FC<DashboardViewProps> = ({ 
@@ -32,7 +33,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onOpenSend,
   onOpenSwap,
   onOpenTokenize,
-  onOpenCopilot
+  onOpenCopilot,
+  onSelectStock
 }) => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [copilotQuickText, setCopilotQuickText] = useState('');
@@ -119,6 +121,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                 onOpenSend={onOpenSend}
                 onOpenSwap={onOpenSwap}
                 onOpenTokenize={onOpenTokenize}
+                onSelectStock={onSelectStock}
               />
 
               {/* AI Copilot & Autonomous Broker Fast Action Bar */}

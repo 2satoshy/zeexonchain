@@ -61,6 +61,7 @@ export default function App() {
   const [selectedDepositToken, setSelectedDepositToken] = useState<TokenAsset | undefined>(undefined);
   const [selectedSendToken, setSelectedSendToken] = useState<TokenAsset | undefined>(undefined);
   const [copilotInitialPrompt, setCopilotInitialPrompt] = useState<string>('');
+  const [selectedStockForDetail, setSelectedStockForDetail] = useState<SMEStock | null>(null);
 
   const handleOpenConnectWallet = (tab: 'base' | 'metamask' | 'coinbase' = 'base') => {
     setConnectWalletDefaultTab(tab);
@@ -747,13 +748,17 @@ export default function App() {
             tokens={displayTokens}
             setActiveTab={setActiveTab} 
             onQuickAction={handleQuickAction}
-            onOpenDeposit={() => handleOpenDeposit()}
-            onOpenSend={() => handleOpenSend()}
+            onOpenDeposit={(t) => handleOpenDeposit(t)}
+            onOpenSend={(t) => handleOpenSend(t)}
             onOpenSwap={() => setActiveTab('trading')}
             onOpenTokenize={() => handleOpenTokenize()}
             onOpenCopilot={(prompt) => {
               if (prompt) setCopilotInitialPrompt(prompt);
               setActiveTab('aiAdvisor');
+            }}
+            onSelectStock={(stock) => {
+              setSelectedStockForDetail(stock);
+              setActiveTab('shares');
             }}
           />
         )}
@@ -773,6 +778,7 @@ export default function App() {
           <SharesView 
             stocks={stocks} 
             onBuyShares={handleBuyShares} 
+            initialStock={selectedStockForDetail}
           />
         )}
 

@@ -27,6 +27,8 @@ import { useCurrency } from '../context/CurrencyContext';
 
 export type { CurrencyMode };
 
+import { AssetDetailModal } from './AssetDetailModal';
+
 interface HomeHeroSwipeCardProps {
   stocks: SMEStock[];
   tokens?: TokenAsset[];
@@ -35,10 +37,11 @@ interface HomeHeroSwipeCardProps {
   oracleRate?: number; // USD to ZIG, default 26.00
   setActiveTab: (tab: TabType) => void;
   onQuickAction: (action: string) => void;
-  onOpenDeposit?: () => void;
-  onOpenSend?: () => void;
+  onOpenDeposit?: (token?: TokenAsset) => void;
+  onOpenSend?: (token?: TokenAsset) => void;
   onOpenSwap?: () => void;
   onOpenTokenize?: () => void;
+  onSelectStock?: (stock: SMEStock) => void;
 }
 
 export interface UserAssetItem {
@@ -92,6 +95,7 @@ export const HomeHeroSwipeCard: React.FC<HomeHeroSwipeCardProps> = ({
   const [assetFilter, setAssetFilter] = useState<'all' | 'stocks' | 'stablecoins' | 'currencies' | 'crypto' | 'nfts'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [currencyNotification, setCurrencyNotification] = useState<string | null>(null);
+  const [selectedAsset, setSelectedAsset] = useState<UserAssetItem | null>(null);
 
   // Swipe handling state
   const touchStartX = useRef<number | null>(null);
@@ -1017,8 +1021,8 @@ export const HomeHeroSwipeCard: React.FC<HomeHeroSwipeCardProps> = ({
                   onClick={() => {
                     if (asset.category === 'nfts') {
                       setSelectedNft(asset);
-                    } else if (asset.actionTab) {
-                      setActiveTab(asset.actionTab);
+                    } else {
+                      setSelectedAsset(asset);
                     }
                   }}
                   className="bg-slate-800/70 hover:bg-slate-800 border border-slate-700/60 hover:border-slate-600 rounded-xl sm:rounded-2xl p-3 sm:p-3.5 transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-2 sm:gap-3 group cursor-pointer active:scale-[0.99]"
@@ -1212,6 +1216,19 @@ export const HomeHeroSwipeCard: React.FC<HomeHeroSwipeCardProps> = ({
           </div>
         </div>
       )}
+
+      {/* Asset Detail & Action Modal (Swap, Buy, Send, View Company Details) */}
+      <AssetDetailModal
+        asset={selectedAsset}
+        onClose={() => setSelectedAsset(null)}
+        setActiveTab={setActiveTab}
+        onOpenDeposit={onOpenDeposit}
+        onOpenSend={onOpenSend}
+        onOpenSwap={onOpenSwap}
+        onSelectStock={onSelectStock}
+        stocks={stocks}
+        tokens={tokens}
+      />
     </div>
   );
 };
