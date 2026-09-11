@@ -54,6 +54,7 @@ contract RevolvingCreditVault {
     event RFQCreated(uint256 indexed rfqId, address indexed borrower, uint256 amountUSD, string purpose);
     event BidSubmitted(uint256 indexed rfqId, uint256 indexed bidId, address lender, string venueName, uint256 rateBps);
     event BidAccepted(uint256 indexed rfqId, uint256 indexed bidId, address lender, uint256 amountUSD);
+    event StablecoinAddressUpdated(address indexed oldAddress, address indexed newAddress);
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Not owner");
@@ -61,7 +62,20 @@ contract RevolvingCreditVault {
     }
 
     constructor(address _stablecoinAddress) {
+        require(_stablecoinAddress != address(0), "Stablecoin address cannot be zero");
         owner = msg.sender;
+        stablecoinAddress = _stablecoinAddress;
+    }
+
+    // ── Admin ─────────────────────────────────────────────────────────────
+
+    /**
+     * @notice Update the stablecoin address used for liquidity draws and repayments.
+     *         Useful after contract redeployment or stablecoin migration.
+     */
+    function setStablecoinAddress(address _stablecoinAddress) external onlyOwner {
+        require(_stablecoinAddress != address(0), "Cannot be zero address");
+        emit StablecoinAddressUpdated(stablecoinAddress, _stablecoinAddress);
         stablecoinAddress = _stablecoinAddress;
     }
 
@@ -85,16 +99,50 @@ contract RevolvingCreditVault {
         emit FacilityApproved(borrower, creditLimitUSD, creditScore, interestRateBps);
     }
 
+    // ── View Helpers ──────────────────────────────────────────────────────
+
+    /**
+     * @notice Returns the vault's current stablecoin balance.
+     *         Use this to verify liquidity before calling drawRevolvingCredit.
+     */
+    function getVaultBalance() external view returns (uint256) {
+        return IERC20Vault(stablecoinAddress).balanceOf(address(this));
+    }
+
+    /**
+     * @notice Returns the available (undrawn) credit for a borrower.
+     */
+    function availableCredit(address borrower) external view returns (uint256) {
+        RevolvingFacility storage fac = facilities[borrower];
+        if (!fac.isActive) return 0;
+        return fac.creditLimitUSD - fac.drawnAmountUSD;
+    }
+
+    // ── Draw & Repay ──────────────────────────────────────────────────────
+
+    /**
+     * @notice Draw `amountUSD` from the revolving credit facility.
+     *
+     * FIX: Balance check and transfer now occur BEFORE state mutation to
+     * prevent a situation where drawnAmountUSD is incremented even if the
+     * actual token transfer fails (check-effects-interactions pattern).
+     */
     function drawRevolvingCredit(uint256 amountUSD) external {
         RevolvingFacility storage fac = facilities[msg.sender];
         require(fac.isActive, "No active revolving facility");
         require(fac.drawnAmountUSD + amountUSD <= fac.creditLimitUSD, "Exceeds approved revolving limit");
 
+        IERC20Vault stablecoin = IERC20Vault(stablecoinAddress);
+
+        // ── FIX: check liquidity BEFORE updating state (check-effects-interactions) ──
+        uint256 vaultBalance = stablecoin.balanceOf(address(this));
+        require(vaultBalance >= amountUSD, "Vault liquidity buffer empty");
+
+        // Update state after validation passes
         fac.drawnAmountUSD += amountUSD;
         fac.lastDrawTimestamp = block.timestamp;
 
-        IERC20Vault stablecoin = IERC20Vault(stablecoinAddress);
-        require(stablecoin.balanceOf(address(this)) >= amountUSD, "Vault liquidity buffer empty");
+        // Transfer stablecoins to borrower
         require(stablecoin.transfer(msg.sender, amountUSD), "Transfer failed");
 
         emit RevolvingDraw(msg.sender, amountUSD, fac.drawnAmountUSD);
@@ -113,6 +161,8 @@ contract RevolvingCreditVault {
         fac.drawnAmountUSD -= payAmount;
         emit RevolvingRepay(msg.sender, payAmount, fac.drawnAmountUSD);
     }
+
+    // ── Loan RFQ ──────────────────────────────────────────────────────────
 
     function createLoanRFQ(uint256 amountUSD, uint256 durationDays, string memory purpose) external returns (uint256) {
         require(amountUSD > 0, "Invalid amount");

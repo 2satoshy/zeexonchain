@@ -1,0 +1,243 @@
+{
+  "timestamp": "2026-09-11T21:17:49.315Z",
+  "network": "base-sepolia",
+  "chainId": 84532,
+  "deployerAddress": "0x96864036945b4F73b475FEf5f3F8b70DE55C9C2c",
+  "depositWallet": "0x871Cf2D6126fD068133E9F2d8d53CdeC59a98f29",
+  "summary": {
+    "total": 32,
+    "passed": 32,
+    "failed": 0,
+    "skipped": 0,
+    "passRate": "100.0%"
+  },
+  "results": [
+    {
+      "suite": "InvoiceNFT",
+      "test": "mintInvoice #1 ($50k, rating 4, 90-day due)",
+      "status": "PASS",
+      "txHash": "0x21bbfd1a9f2c3975db4af6e0457d72440169260751f0cbf10298e9fc69a3fce0",
+      "txUrl": "https://sepolia.basescan.org/tx/0x21bbfd1a9f2c3975db4af6e0457d72440169260751f0cbf10298e9fc69a3fce0",
+      "notes": "Token ID #1 minted to deployer"
+    },
+    {
+      "suite": "InvoiceNFT",
+      "test": "transferFrom NFT #1 -> deposit wallet",
+      "status": "PASS",
+      "txHash": "0xfcd9454801a7d95498b9fbfd958accf77c29a001df5a782f8a8bf9ccef143cc3",
+      "txUrl": "https://sepolia.basescan.org/tx/0xfcd9454801a7d95498b9fbfd958accf77c29a001df5a782f8a8bf9ccef143cc3"
+    },
+    {
+      "suite": "InvoiceNFT",
+      "test": "mintInvoice #2 ($100k, rating 5, 180-day due)",
+      "status": "PASS",
+      "txHash": "0x6a446504191f40b8512d05619a6d3f939e618f68e0d6136b64e54e2b9920dcad",
+      "txUrl": "https://sepolia.basescan.org/tx/0x6a446504191f40b8512d05619a6d3f939e618f68e0d6136b64e54e2b9920dcad",
+      "notes": "Token ID #2 for vault collateral"
+    },
+    {
+      "suite": "InvoiceCreditVault",
+      "test": "setWhitelisted vault on RWAToken",
+      "status": "PASS",
+      "txHash": "0xed1176305d89a76965438c3adf21cd9da1f104d98b0b306bcbb98adfc05061fd",
+      "txUrl": "https://sepolia.basescan.org/tx/0xed1176305d89a76965438c3adf21cd9da1f104d98b0b306bcbb98adfc05061fd"
+    },
+    {
+      "suite": "InvoiceCreditVault",
+      "test": "fund InvoiceCreditVault with 10000 RWA liquidity",
+      "status": "PASS",
+      "txHash": "0x81567dbb1c6c184251adbc73fb2eca403a82f7a6249d0ea64e6d385f2e794499",
+      "txUrl": "https://sepolia.basescan.org/tx/0x81567dbb1c6c184251adbc73fb2eca403a82f7a6249d0ea64e6d385f2e794499"
+    },
+    {
+      "suite": "InvoiceCreditVault",
+      "test": "setApprovalForAll on InvoiceNFT for vault",
+      "status": "PASS",
+      "txHash": "0xdf0e29d8f1c619d30ff8f6c2ac74d5b9966a7a533162bfe8818a6236aada8723",
+      "txUrl": "https://sepolia.basescan.org/tx/0xdf0e29d8f1c619d30ff8f6c2ac74d5b9966a7a533162bfe8818a6236aada8723"
+    },
+    {
+      "suite": "InvoiceCreditVault",
+      "test": "depositCollateral NFT #2",
+      "status": "PASS",
+      "txHash": "0x0af261cee4b82eae0d96a5133f93f76c63b9c3704d5ad4a2e7de5edd87b7f148",
+      "txUrl": "https://sepolia.basescan.org/tx/0x0af261cee4b82eae0d96a5133f93f76c63b9c3704d5ad4a2e7de5edd87b7f148",
+      "notes": "75% LTV => $75k max borrow"
+    },
+    {
+      "suite": "InvoiceCreditVault",
+      "test": "drawCreditLine 1000 tokens against NFT collateral",
+      "status": "PASS",
+      "txHash": "0xeb3be923dc17a424c0d9a11464187bc18dbecbe25554c7cf86775b75e7398b16",
+      "txUrl": "https://sepolia.basescan.org/tx/0xeb3be923dc17a424c0d9a11464187bc18dbecbe25554c7cf86775b75e7398b16"
+    },
+    {
+      "suite": "InvoiceCreditVault",
+      "test": "approve RWAToken (5000) for repay",
+      "status": "PASS",
+      "txHash": "0x7c5a24bf5d250d5a4075156b8c2965c606ea8a5a61da17363bd2d7b434ea5d0b",
+      "txUrl": "https://sepolia.basescan.org/tx/0x7c5a24bf5d250d5a4075156b8c2965c606ea8a5a61da17363bd2d7b434ea5d0b"
+    },
+    {
+      "suite": "InvoiceCreditVault",
+      "test": "repayCreditLine 1000 tokens (NFT returned)",
+      "status": "PASS",
+      "txHash": "0x02ea99592bce539d2ab92897de0e5c562c8acac0e6b0fc5355e34a7c9fcca59f",
+      "txUrl": "https://sepolia.basescan.org/tx/0x02ea99592bce539d2ab92897de0e5c562c8acac0e6b0fc5355e34a7c9fcca59f"
+    },
+    {
+      "suite": "RWAToken",
+      "test": "setWhitelisted deposit wallet",
+      "status": "PASS",
+      "txHash": "0xfba828c80a78f8bc8a34bfd793717e5e99dcd30057b34656dd81b3362e98544d",
+      "txUrl": "https://sepolia.basescan.org/tx/0xfba828c80a78f8bc8a34bfd793717e5e99dcd30057b34656dd81b3362e98544d"
+    },
+    {
+      "suite": "RWAToken",
+      "test": "transfer 500 RWA -> deposit wallet",
+      "status": "PASS",
+      "txHash": "0xbcc00c0f981b4ee96a607ab143e84dd82536357f3f047efeba7e06b0a1e04279",
+      "txUrl": "https://sepolia.basescan.org/tx/0xbcc00c0f981b4ee96a607ab143e84dd82536357f3f047efeba7e06b0a1e04279"
+    },
+    {
+      "suite": "RWAToken",
+      "test": "approve 10000 RWA (self-approval test)",
+      "status": "PASS",
+      "txHash": "0x74f7fc564a31377d08c8f8d3005787c0a6a029d592681c0505532b667d672c26",
+      "txUrl": "https://sepolia.basescan.org/tx/0x74f7fc564a31377d08c8f8d3005787c0a6a029d592681c0505532b667d672c26"
+    },
+    {
+      "suite": "AirdropDistributor",
+      "test": "setTokenAddress (RWAToken)",
+      "status": "PASS",
+      "txHash": "0x6fcf34a8e0dcf9826529455270cb31f8ebb1fd51586897c641c0691632276e2d",
+      "txUrl": "https://sepolia.basescan.org/tx/0x6fcf34a8e0dcf9826529455270cb31f8ebb1fd51586897c641c0691632276e2d"
+    },
+    {
+      "suite": "AirdropDistributor",
+      "test": "setMerkleRoot (test root)",
+      "status": "PASS",
+      "txHash": "0xf7f80cacee64e52d6b7a21e87dce4ca78fb222c0bb77dd270d860959babf93b7",
+      "txUrl": "https://sepolia.basescan.org/tx/0xf7f80cacee64e52d6b7a21e87dce4ca78fb222c0bb77dd270d860959babf93b7",
+      "notes": "root: 0x9eabeb854819fbe702e3fd9a32cee1dc9be039052a214d7faf2520d8ac3ac829"
+    },
+    {
+      "suite": "AirdropDistributor",
+      "test": "setWhitelisted AirdropDistributor on RWAToken",
+      "status": "PASS",
+      "txHash": "0x7873fb2ef5ec12e78fd4c69c98c66999ab7dde409e4a6026759fe2790fe71bd1",
+      "txUrl": "https://sepolia.basescan.org/tx/0x7873fb2ef5ec12e78fd4c69c98c66999ab7dde409e4a6026759fe2790fe71bd1"
+    },
+    {
+      "suite": "AirdropDistributor",
+      "test": "setWhitelisted deposit wallet on RWAToken",
+      "status": "PASS",
+      "txHash": "0xacae3c9732f9efe5b5046f7870e4982e3ac375b4cb2004c1fc1288cd4a26ce0f",
+      "txUrl": "https://sepolia.basescan.org/tx/0xacae3c9732f9efe5b5046f7870e4982e3ac375b4cb2004c1fc1288cd4a26ce0f"
+    },
+    {
+      "suite": "AirdropDistributor",
+      "test": "fund AirdropDistributor with 5000 RWA",
+      "status": "PASS",
+      "txHash": "0xd8a6ec6e3506a25d73771dabff6a80838268dd88d911589c649dc9aa043d57df",
+      "txUrl": "https://sepolia.basescan.org/tx/0xd8a6ec6e3506a25d73771dabff6a80838268dd88d911589c649dc9aa043d57df"
+    },
+    {
+      "suite": "AirdropDistributor",
+      "test": "executeBatchAirdrop 1000 RWA -> deposit wallet",
+      "status": "PASS",
+      "txHash": "0xfd25e2fea7f182e9af24d745363ff21dd2ef9c77b80a814c898eb9e642b0310b",
+      "txUrl": "https://sepolia.basescan.org/tx/0xfd25e2fea7f182e9af24d745363ff21dd2ef9c77b80a814c898eb9e642b0310b"
+    },
+    {
+      "suite": "AirdropDistributor",
+      "test": "withdrawRemainingTokens (4000 RWA back to owner)",
+      "status": "PASS",
+      "txHash": "0x73fd8026482547faf30a33e3b9d280631af8876653d39b65b283c47764a2cb75",
+      "txUrl": "https://sepolia.basescan.org/tx/0x73fd8026482547faf30a33e3b9d280631af8876653d39b65b283c47764a2cb75"
+    },
+    {
+      "suite": "RWATokenFactory",
+      "test": "createRWAToken (Nairobi Solar Farm RWA, 500k supply, $3M valuation)",
+      "status": "PASS",
+      "txHash": "0x3581eb1d2c5e8ae85aa06f422a457df07241ab66da9bb8a81005dea24a1b3b89",
+      "txUrl": "https://sepolia.basescan.org/tx/0x3581eb1d2c5e8ae85aa06f422a457df07241ab66da9bb8a81005dea24a1b3b89"
+    },
+    {
+      "suite": "RWATokenFactory",
+      "test": "getDeployedTokens (view)",
+      "status": "PASS",
+      "notes": "1 tokens"
+    },
+    {
+      "suite": "RevolvingCreditVault",
+      "test": "approveFacility ($50k limit, score 750, 6% APR)",
+      "status": "PASS",
+      "txHash": "0x130a2ab2a5efb86ff0a6428ab20b89f4ddb89492b13ff3a2409c042dc01a3e80",
+      "txUrl": "https://sepolia.basescan.org/tx/0x130a2ab2a5efb86ff0a6428ab20b89f4ddb89492b13ff3a2409c042dc01a3e80"
+    },
+    {
+      "suite": "RevolvingCreditVault",
+      "test": "setWhitelisted RevolvingCreditVault on RWAToken",
+      "status": "PASS",
+      "txHash": "0x52ce2a61960da75d1d7d526488cd44f0df40fdee875ac4cf890a1d8c38bbc2b5",
+      "txUrl": "https://sepolia.basescan.org/tx/0x52ce2a61960da75d1d7d526488cd44f0df40fdee875ac4cf890a1d8c38bbc2b5"
+    },
+    {
+      "suite": "RevolvingCreditVault",
+      "test": "fund RevolvingCreditVault 10000 RWA",
+      "status": "PASS",
+      "txHash": "0x0770829ee2cda3987f0b8736bc8fef32ef6feec2ee434f145536486099bed48d",
+      "txUrl": "https://sepolia.basescan.org/tx/0x0770829ee2cda3987f0b8736bc8fef32ef6feec2ee434f145536486099bed48d"
+    },
+    {
+      "suite": "RevolvingCreditVault",
+      "test": "drawRevolvingCredit 2000 tokens",
+      "status": "PASS",
+      "txHash": "0x2e431031be1430f55bcc30d60fe254c42d8a1254b70345f67fc00d75946f7e53",
+      "txUrl": "https://sepolia.basescan.org/tx/0x2e431031be1430f55bcc30d60fe254c42d8a1254b70345f67fc00d75946f7e53"
+    },
+    {
+      "suite": "RevolvingCreditVault",
+      "test": "approve RWAToken for RCV repay",
+      "status": "PASS",
+      "txHash": "0x69b36f58b9dc84e68d6847b1890654343170492546827539b6ea60eb894e2f0e",
+      "txUrl": "https://sepolia.basescan.org/tx/0x69b36f58b9dc84e68d6847b1890654343170492546827539b6ea60eb894e2f0e"
+    },
+    {
+      "suite": "RevolvingCreditVault",
+      "test": "repayRevolvingCredit 2000 tokens",
+      "status": "PASS",
+      "txHash": "0x3282166903a4f6d92dc7f0117dc5285decf7ce9506c1866095fe907c2e00e924",
+      "txUrl": "https://sepolia.basescan.org/tx/0x3282166903a4f6d92dc7f0117dc5285decf7ce9506c1866095fe907c2e00e924"
+    },
+    {
+      "suite": "RevolvingCreditVault",
+      "test": "createLoanRFQ $25k, 90 days, export operations",
+      "status": "PASS",
+      "txHash": "0x96d7b518acb47259749cb2749fb5eff27c5fa1d106edb93c9abb3e8d58f92fe6",
+      "txUrl": "https://sepolia.basescan.org/tx/0x96d7b518acb47259749cb2749fb5eff27c5fa1d106edb93c9abb3e8d58f92fe6"
+    },
+    {
+      "suite": "RevolvingCreditVault",
+      "test": "submitRFQBid 5.5% APR, $25k max — ZEEX Invoice Vault",
+      "status": "PASS",
+      "txHash": "0xf59f9cadf117f2c797189b80696f7c6914f22e94192d5e334bc5d3fa93a2aba7",
+      "txUrl": "https://sepolia.basescan.org/tx/0xf59f9cadf117f2c797189b80696f7c6914f22e94192d5e334bc5d3fa93a2aba7"
+    },
+    {
+      "suite": "RevolvingCreditVault",
+      "test": "acceptRFQBid (bid index 0, facility upgraded from RFQ)",
+      "status": "PASS",
+      "txHash": "0xc41e6ccd8275387cbdaeb4761b70f1c9c4facce2837b600fcaf682f887feafb8",
+      "txUrl": "https://sepolia.basescan.org/tx/0xc41e6ccd8275387cbdaeb4761b70f1c9c4facce2837b600fcaf682f887feafb8"
+    },
+    {
+      "suite": "Asset Deposit",
+      "test": "Transfer all remaining 978500 RWA to deposit wallet",
+      "status": "PASS",
+      "txHash": "0x1cbb0a5af661f77576b6269e7aeca440a84551ae882193a4aa24ce032aea1744",
+      "txUrl": "https://sepolia.basescan.org/tx/0x1cbb0a5af661f77576b6269e7aeca440a84551ae882193a4aa24ce032aea1744"
+    }
+  ]
+}

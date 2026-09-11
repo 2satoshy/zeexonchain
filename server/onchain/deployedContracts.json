@@ -1,12 +1,61 @@
 {
   "InvoiceNFT": {
-    "contractName": "InvoiceNFT",
-    "contractAddress": "0xd725f51ba5fb514464216cef858408cfc1421da7",
+    "contractAddress": "0x602a33d84ed6be03629eb5a7d364ed71b0e02407",
     "abi": [
       {
         "inputs": [],
         "stateMutability": "nonpayable",
         "type": "constructor"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "tokenOwner",
+            "type": "address"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "approved",
+            "type": "address"
+          },
+          {
+            "indexed": true,
+            "internalType": "uint256",
+            "name": "tokenId",
+            "type": "uint256"
+          }
+        ],
+        "name": "Approval",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "tokenOwner",
+            "type": "address"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "operator",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "bool",
+            "name": "approved",
+            "type": "bool"
+          }
+        ],
+        "name": "ApprovalForAll",
+        "type": "event"
       },
       {
         "anonymous": false,
@@ -81,6 +130,24 @@
         "inputs": [
           {
             "internalType": "address",
+            "name": "to",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "tokenId",
+            "type": "uint256"
+          }
+        ],
+        "name": "approve",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
             "name": "account",
             "type": "address"
           }
@@ -91,6 +158,25 @@
             "internalType": "uint256",
             "name": "",
             "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint256",
+            "name": "tokenId",
+            "type": "uint256"
+          }
+        ],
+        "name": "getApproved",
+        "outputs": [
+          {
+            "internalType": "address",
+            "name": "",
+            "type": "address"
           }
         ],
         "stateMutability": "view",
@@ -129,6 +215,30 @@
           {
             "internalType": "bool",
             "name": "isSettled",
+            "type": "bool"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "tokenOwner",
+            "type": "address"
+          },
+          {
+            "internalType": "address",
+            "name": "operator",
+            "type": "address"
+          }
+        ],
+        "name": "isApprovedForAll",
+        "outputs": [
+          {
+            "internalType": "bool",
+            "name": "",
             "type": "bool"
           }
         ],
@@ -233,6 +343,24 @@
         "type": "function"
       },
       {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "operator",
+            "type": "address"
+          },
+          {
+            "internalType": "bool",
+            "name": "approved",
+            "type": "bool"
+          }
+        ],
+        "name": "setApprovalForAll",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
         "inputs": [],
         "name": "symbol",
         "outputs": [
@@ -268,16 +396,10 @@
         "stateMutability": "nonpayable",
         "type": "function"
       }
-    ],
-    "network": "base-sepolia",
-    "chainId": 84532,
-    "deployedAt": "2026-09-09T06:12:18.547Z",
-    "txHash": "0xb5938ddf9cf59b1ae0c3b1705489763fa1a93725b95f65b6db05e8163217d8dd",
-    "deployerAddress": "0x96864036945b4F73b475FEf5f3F8b70DE55C9C2c"
+    ]
   },
   "InvoiceCreditVault": {
-    "contractName": "InvoiceCreditVault",
-    "contractAddress": "0x41d3174af5124c3880df9833e7f5385cbd189d21",
+    "contractAddress": "0xea78373f6ba8a075dbf64447aa7236ffda6b1269",
     "abi": [
       {
         "inputs": [
@@ -595,16 +717,10 @@
         "stateMutability": "view",
         "type": "function"
       }
-    ],
-    "network": "base-sepolia",
-    "chainId": 84532,
-    "deployedAt": "2026-09-09T06:12:20.912Z",
-    "txHash": "0xc70c1549ef18791a72a8f4ca366bdba21dd88b33c72765f405fc7be9715a83e9",
-    "deployerAddress": "0x96864036945b4F73b475FEf5f3F8b70DE55C9C2c"
+    ]
   },
   "AirdropDistributor": {
-    "contractName": "AirdropDistributor",
-    "contractAddress": "0x7a3f1a6ac057f9a1354108548ef51c320adf19c1",
+    "contractAddress": "0x891c6788d6fa92e96f24446d46b9e604aa1d9800",
     "abi": [
       {
         "inputs": [
@@ -800,16 +916,10 @@
         "stateMutability": "nonpayable",
         "type": "function"
       }
-    ],
-    "network": "base-sepolia",
-    "chainId": 84532,
-    "deployedAt": "2026-09-09T06:12:22.482Z",
-    "txHash": "0x28d70f9f547317eb50c3f367720303c41999e56d35e1c0fd126d875d6514d985",
-    "deployerAddress": "0x96864036945b4F73b475FEf5f3F8b70DE55C9C2c"
+    ]
   },
   "RWAToken": {
-    "contractName": "RWAToken",
-    "contractAddress": "0x62b39b5476fdb2490acc072aba9659c283e678c6",
+    "contractAddress": "0xcdc2679b5fd0d747e3de163e3b45f5a754928c28",
     "abi": [
       {
         "inputs": [
@@ -1164,16 +1274,10 @@
         "stateMutability": "view",
         "type": "function"
       }
-    ],
-    "network": "base-sepolia",
-    "chainId": 84532,
-    "deployedAt": "2026-09-09T06:12:24.158Z",
-    "txHash": "0x32f8a4ed2106382709e80d70d2522fffda1f43e8cb9109cf3fd8a9d1780efa72",
-    "deployerAddress": "0x96864036945b4F73b475FEf5f3F8b70DE55C9C2c"
+    ]
   },
   "RWATokenFactory": {
-    "contractName": "RWATokenFactory",
-    "contractAddress": "0x750a91b34aaed56b24371e856a33e5fb72b3690c",
+    "contractAddress": "0x2de5ce638893a553f362ed053f7110171c9d961e",
     "abi": [
       {
         "inputs": [],
@@ -1320,11 +1424,635 @@
         "stateMutability": "view",
         "type": "function"
       }
-    ],
-    "network": "base-sepolia",
-    "chainId": 84532,
-    "deployedAt": "2026-09-09T06:12:25.673Z",
-    "txHash": "0xa3f05ddf858fdb2ce63b76abe0feff3a9bdcc78400edf094d7d1e50dbe0cddaa",
-    "deployerAddress": "0x96864036945b4F73b475FEf5f3F8b70DE55C9C2c"
+    ]
+  },
+  "RevolvingCreditVault": {
+    "contractAddress": "0xcdf95236a6b6f9690ca79752b6dd28dc70669aa2",
+    "abi": [
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "_stablecoinAddress",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "constructor"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "uint256",
+            "name": "rfqId",
+            "type": "uint256"
+          },
+          {
+            "indexed": true,
+            "internalType": "uint256",
+            "name": "bidId",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "lender",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "amountUSD",
+            "type": "uint256"
+          }
+        ],
+        "name": "BidAccepted",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "uint256",
+            "name": "rfqId",
+            "type": "uint256"
+          },
+          {
+            "indexed": true,
+            "internalType": "uint256",
+            "name": "bidId",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "address",
+            "name": "lender",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "string",
+            "name": "venueName",
+            "type": "string"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "rateBps",
+            "type": "uint256"
+          }
+        ],
+        "name": "BidSubmitted",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "borrower",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "creditLimitUSD",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "creditScore",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "interestRateBps",
+            "type": "uint256"
+          }
+        ],
+        "name": "FacilityApproved",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "uint256",
+            "name": "rfqId",
+            "type": "uint256"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "borrower",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "amountUSD",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "string",
+            "name": "purpose",
+            "type": "string"
+          }
+        ],
+        "name": "RFQCreated",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "borrower",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "amountUSD",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "newTotalDrawn",
+            "type": "uint256"
+          }
+        ],
+        "name": "RevolvingDraw",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "borrower",
+            "type": "address"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "amountUSD",
+            "type": "uint256"
+          },
+          {
+            "indexed": false,
+            "internalType": "uint256",
+            "name": "remainingDrawn",
+            "type": "uint256"
+          }
+        ],
+        "name": "RevolvingRepay",
+        "type": "event"
+      },
+      {
+        "anonymous": false,
+        "inputs": [
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "oldAddress",
+            "type": "address"
+          },
+          {
+            "indexed": true,
+            "internalType": "address",
+            "name": "newAddress",
+            "type": "address"
+          }
+        ],
+        "name": "StablecoinAddressUpdated",
+        "type": "event"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint256",
+            "name": "rfqId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "bidIndex",
+            "type": "uint256"
+          }
+        ],
+        "name": "acceptRFQBid",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "borrower",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "creditLimitUSD",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "creditScore",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "interestRateBps",
+            "type": "uint256"
+          }
+        ],
+        "name": "approveFacility",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "borrower",
+            "type": "address"
+          }
+        ],
+        "name": "availableCredit",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint256",
+            "name": "amountUSD",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "durationDays",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "purpose",
+            "type": "string"
+          }
+        ],
+        "name": "createLoanRFQ",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint256",
+            "name": "amountUSD",
+            "type": "uint256"
+          }
+        ],
+        "name": "drawRevolvingCredit",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "name": "facilities",
+        "outputs": [
+          {
+            "internalType": "address",
+            "name": "borrower",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "creditLimitUSD",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "drawnAmountUSD",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "interestRateBps",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "creditScore",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "lastDrawTimestamp",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isActive",
+            "type": "bool"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint256",
+            "name": "rfqId",
+            "type": "uint256"
+          }
+        ],
+        "name": "getBidsForRFQ",
+        "outputs": [
+          {
+            "components": [
+              {
+                "internalType": "uint256",
+                "name": "bidId",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "rfqId",
+                "type": "uint256"
+              },
+              {
+                "internalType": "address",
+                "name": "lenderVenue",
+                "type": "address"
+              },
+              {
+                "internalType": "string",
+                "name": "venueName",
+                "type": "string"
+              },
+              {
+                "internalType": "uint256",
+                "name": "proposedInterestBps",
+                "type": "uint256"
+              },
+              {
+                "internalType": "uint256",
+                "name": "maxAmountUSD",
+                "type": "uint256"
+              },
+              {
+                "internalType": "bool",
+                "name": "isAccepted",
+                "type": "bool"
+              }
+            ],
+            "internalType": "struct RevolvingCreditVault.RFQBid[]",
+            "name": "",
+            "type": "tuple[]"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "getVaultBalance",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "owner",
+        "outputs": [
+          {
+            "internalType": "address",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint256",
+            "name": "amountUSD",
+            "type": "uint256"
+          }
+        ],
+        "name": "repayRevolvingCredit",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "name": "rfqBids",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "bidId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "rfqId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "lenderVenue",
+            "type": "address"
+          },
+          {
+            "internalType": "string",
+            "name": "venueName",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "proposedInterestBps",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxAmountUSD",
+            "type": "uint256"
+          },
+          {
+            "internalType": "bool",
+            "name": "isAccepted",
+            "type": "bool"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "name": "rfqRequests",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "rfqId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "address",
+            "name": "borrower",
+            "type": "address"
+          },
+          {
+            "internalType": "uint256",
+            "name": "requestedAmountUSD",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "durationDays",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "businessPurpose",
+            "type": "string"
+          },
+          {
+            "internalType": "bool",
+            "name": "isOpen",
+            "type": "bool"
+          },
+          {
+            "internalType": "uint256",
+            "name": "winningBidId",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "address",
+            "name": "_stablecoinAddress",
+            "type": "address"
+          }
+        ],
+        "name": "setStablecoinAddress",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      },
+      {
+        "inputs": [],
+        "name": "stablecoinAddress",
+        "outputs": [
+          {
+            "internalType": "address",
+            "name": "",
+            "type": "address"
+          }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+      },
+      {
+        "inputs": [
+          {
+            "internalType": "uint256",
+            "name": "rfqId",
+            "type": "uint256"
+          },
+          {
+            "internalType": "string",
+            "name": "venueName",
+            "type": "string"
+          },
+          {
+            "internalType": "uint256",
+            "name": "proposedInterestBps",
+            "type": "uint256"
+          },
+          {
+            "internalType": "uint256",
+            "name": "maxAmountUSD",
+            "type": "uint256"
+          }
+        ],
+        "name": "submitRFQBid",
+        "outputs": [
+          {
+            "internalType": "uint256",
+            "name": "",
+            "type": "uint256"
+          }
+        ],
+        "stateMutability": "nonpayable",
+        "type": "function"
+      }
+    ]
   }
 }
